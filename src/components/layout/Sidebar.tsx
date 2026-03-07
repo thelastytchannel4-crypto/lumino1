@@ -7,13 +7,14 @@ import {
   History, 
   Settings, 
   Sparkles, 
-  Image as ImageIcon,
+  Layers,
   Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Enhancer', path: '/' },
+  { icon: Layers, label: 'Batch Process', path: '/batch' },
   { icon: History, label: 'History', path: '/history' },
   { icon: Settings, label: 'Settings', path: '/settings' },
 ];
