@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import React, { useState, useRef } from 'react';
 
 interface ComparisonSliderProps {
   before: string;
@@ -29,11 +28,12 @@ const ComparisonSlider = ({ before, after }: ComparisonSliderProps) => {
       onMouseMove={handleMove}
       onTouchMove={handleMove}
     >
-      {/* After Image (Enhanced) */}
+      {/* After Image (Enhanced) - Simulated with filters */}
       <img 
         src={after} 
         alt="After" 
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover brightness-110 contrast-110 saturate-125"
+        style={{ filter: 'contrast(1.1) brightness(1.05) saturate(1.2) sharp(10px)' }}
       />
 
       {/* Before Image (Original) */}
@@ -44,7 +44,7 @@ const ComparisonSlider = ({ before, after }: ComparisonSliderProps) => {
         <img 
           src={before} 
           alt="Before" 
-          className="absolute inset-0 w-full h-full object-cover grayscale-[0.5] blur-[1px]"
+          className="absolute inset-0 w-full h-full object-cover grayscale-[0.2] blur-[0.5px]"
         />
       </div>
 
