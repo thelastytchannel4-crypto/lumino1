@@ -5,6 +5,8 @@ import MainLayout from '@/components/layout/MainLayout';
 import ImageUploader from '@/components/enhancer/ImageUploader';
 import ComparisonSlider from '@/components/enhancer/ComparisonSlider';
 import EnhancementControls from '@/components/enhancer/EnhancementControls';
+import ProcessingSteps from '@/components/enhancer/ProcessingSteps';
+import SampleGallery from '@/components/enhancer/SampleGallery';
 import { showSuccess } from '@/utils/toast';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 
@@ -19,14 +21,20 @@ const Index = () => {
     setIsEnhanced(false);
   };
 
+  const handleSelectSample = (url: string) => {
+    setImage(url);
+    setIsEnhanced(false);
+  };
+
   const handleEnhance = () => {
     setIsProcessing(true);
+    setIsEnhanced(false);
     // Simulate AI processing
     setTimeout(() => {
       setIsProcessing(false);
       setIsEnhanced(true);
       showSuccess("Photo enhanced successfully!");
-    }, 2500);
+    }, 3000);
   };
 
   const reset = () => {
@@ -65,6 +73,8 @@ const Index = () => {
               </div>
             ))}
           </div>
+
+          <SampleGallery onSelect={handleSelectSample} />
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -80,16 +90,16 @@ const Index = () => {
             {isEnhanced ? (
               <ComparisonSlider 
                 before={image} 
-                after={image} // In a real app, this would be the processed URL
+                after={image} 
               />
             ) : (
               <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl bg-slate-200">
                 <img src={image} alt="Original" className="w-full h-full object-cover" />
                 {isProcessing && (
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center text-white">
-                    <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4" />
-                    <p className="font-bold text-lg">Analyzing Pixels...</p>
-                    <p className="text-indigo-200 text-sm">Applying neural networks</p>
+                  <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center text-white p-8">
+                    <div className="w-20 h-20 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-8" />
+                    <h3 className="text-2xl font-bold mb-6">Enhancing your photo...</h3>
+                    <ProcessingSteps />
                   </div>
                 )}
               </div>
@@ -100,6 +110,7 @@ const Index = () => {
             <EnhancementControls 
               onEnhance={handleEnhance} 
               isProcessing={isProcessing} 
+              isEnhanced={isEnhanced}
             />
           </div>
         </div>
