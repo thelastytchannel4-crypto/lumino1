@@ -2,7 +2,7 @@
 
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Camera, Mail, MapPin, Calendar, Edit3 } from 'lucide-react';
+import { Camera, Mail, MapPin, Calendar, Edit3, Shield } from 'lucide-react';
 
 const Profile = () => {
   return (
@@ -19,7 +19,7 @@ const Profile = () => {
               </button>
             </div>
             <div className="mb-4">
-              <h1 className="text-3xl font-bold text-slate-900">Alex Rivera</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Alex Rivera</h1>
               <p className="text-slate-500 font-medium">Professional Photographer</p>
             </div>
           </div>
@@ -27,8 +27,8 @@ const Profile = () => {
 
         <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1 space-y-6">
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-4">About</h3>
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+              <h3 className="font-bold text-slate-900 dark:text-white mb-4">About</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-3 text-slate-500 text-sm">
                   <Mail className="w-4 h-4" />
@@ -46,26 +46,20 @@ const Profile = () => {
             </div>
 
             <div className="bg-indigo-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-100">
-              <h3 className="font-bold mb-2">Usage Stats</h3>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>Monthly Credits</span>
-                    <span>850 / 1000</span>
-                  </div>
-                  <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
-                    <div className="h-full w-[85%] bg-white rounded-full" />
-                  </div>
-                </div>
-                <p className="text-[10px] text-indigo-100">Resets in 12 days</p>
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="w-5 h-5" />
+                <h3 className="font-bold">Verified Account</h3>
               </div>
+              <p className="text-xs text-indigo-100 leading-relaxed">
+                Your account is in good standing. You have full access to all Lumina AI features.
+              </p>
             </div>
           </div>
 
           <div className="md:col-span-2 space-y-6">
-            <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-slate-900">Personal Information</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Personal Information</h3>
                 <button className="flex items-center gap-2 text-sm font-bold text-indigo-600">
                   <Edit3 className="w-4 h-4" />
                   Edit
@@ -75,15 +69,15 @@ const Profile = () => {
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">First Name</label>
-                  <p className="mt-1 font-medium text-slate-900">Alex</p>
+                  <p className="mt-1 font-medium text-slate-900 dark:text-white">Alex</p>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Last Name</label>
-                  <p className="mt-1 font-medium text-slate-900">Rivera</p>
+                  <p className="mt-1 font-medium text-slate-900 dark:text-white">Rivera</p>
                 </div>
                 <div className="col-span-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bio</label>
-                  <p className="mt-1 text-slate-600 leading-relaxed">
+                  <p className="mt-1 text-slate-600 dark:text-slate-400 leading-relaxed">
                     Capturing moments and enhancing them with the power of AI. I specialize in landscape and portrait photography.
                   </p>
                 </div>

@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { 
   Bell, 
-  Lock, 
   User, 
-  Globe, 
-  Moon, 
   CreditCard,
   ShieldCheck,
-  Check
+  Check,
+  Mail,
+  Lock,
+  Eye
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { showSuccess } from '@/utils/toast';
@@ -24,6 +24,7 @@ const Settings = () => {
   const [autoDownload, setAutoDownload] = useState(true);
   const [highFidelity, setHighFidelity] = useState(true);
   const [exportFormat, setExportFormat] = useState('png');
+  const [emailNotifications, setEmailNotifications] = useState(true);
 
   const tabs = [
     { icon: User, label: 'General' },
@@ -71,13 +72,12 @@ const Settings = () => {
 
         {/* Content Area */}
         <div className="md:col-span-2 space-y-6">
-          {activeTab === 'General' ? (
+          {activeTab === 'General' && (
             <>
               <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Application Preferences</h3>
                 
                 <div className="space-y-6">
-                  {/* Auto Download Toggle */}
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-slate-900 dark:text-white">Auto-download results</p>
@@ -97,7 +97,6 @@ const Settings = () => {
                     </button>
                   </div>
 
-                  {/* Dark Mode Toggle */}
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-slate-900 dark:text-white">Dark Mode</p>
@@ -117,7 +116,6 @@ const Settings = () => {
                     </button>
                   </div>
 
-                  {/* High Fidelity Toggle */}
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-slate-900 dark:text-white">High-Fidelity Preview</p>
@@ -180,14 +178,42 @@ const Settings = () => {
                 </div>
               </div>
             </>
-          ) : (
+          )}
+
+          {activeTab === 'Notifications' && (
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Notification Settings</h3>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white">Email Notifications</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Receive updates about your processed images via email.</p>
+                  </div>
+                  <button 
+                    onClick={() => handleToggle('Email Notifications', emailNotifications, setEmailNotifications)}
+                    className={cn(
+                      "w-12 h-6 rounded-full relative transition-colors duration-200",
+                      emailNotifications ? "bg-indigo-600" : "bg-slate-200 dark:bg-slate-700"
+                    )}
+                  >
+                    <div className={cn(
+                      "absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-200",
+                      emailNotifications ? "right-1" : "left-1"
+                    )} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(activeTab === 'Privacy & Security' || activeTab === 'Billing') && (
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 border border-slate-100 dark:border-slate-800 shadow-sm text-center">
               <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Lock className="w-8 h-8 text-slate-300" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{activeTab} Settings</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{activeTab}</h3>
               <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                These settings are currently locked for your account type. Upgrade to Pro to unlock advanced configuration.
+                This section is currently being updated. All your data is secure and your access is unlimited.
               </p>
             </div>
           )}

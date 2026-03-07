@@ -8,7 +8,6 @@ import {
   Settings, 
   Sparkles, 
   Layers,
-  Zap,
   Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -57,19 +56,15 @@ const Sidebar = () => {
         })}
       </nav>
 
-      <div className="p-4 mt-auto">
-        <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-5 text-white shadow-xl shadow-indigo-100">
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className="w-4 h-4 fill-current" />
-            <span className="text-xs font-bold uppercase tracking-wider">Pro Plan</span>
+      <div className="p-6 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-indigo-600" />
           </div>
-          <p className="text-sm text-indigo-100 mb-4">Unlock 4K upscaling and batch processing.</p>
-          <Link 
-            to="/pricing"
-            className="block w-full py-2 bg-white text-indigo-600 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors text-center"
-          >
-            Upgrade Now
-          </Link>
+          <div className="text-xs">
+            <p className="font-bold text-slate-900 dark:text-white">Unlimited Access</p>
+            <p className="text-slate-500">All features unlocked</p>
+          </div>
         </div>
       </div>
     </aside>

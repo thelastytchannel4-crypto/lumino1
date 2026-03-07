@@ -20,7 +20,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             <Link to="/profile" className="flex items-center gap-4 hover:opacity-80 transition-opacity group">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">Alex Rivera</p>
-                <p className="text-xs text-slate-500">Free Account</p>
+                <p className="text-xs text-slate-500">Professional Account</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 border-2 border-white dark:border-slate-700 shadow-sm overflow-hidden">
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Avatar" />
