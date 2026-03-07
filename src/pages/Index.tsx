@@ -5,13 +5,17 @@ import MainLayout from '@/components/layout/MainLayout';
 import ImageUploader from '@/components/enhancer/ImageUploader';
 import ComparisonSlider from '@/components/enhancer/ComparisonSlider';
 import EnhancementControls from '@/components/enhancer/EnhancementControls';
+import ModelSelector from '@/components/enhancer/ModelSelector';
 import { showSuccess } from '@/utils/toast';
-import { Sparkles, ArrowLeft } from 'lucide-react';
+import { Sparkles, ArrowLeft, Layers, Image as ImageIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const Index = () => {
   const [image, setImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isEnhanced, setIsEnhanced] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('portrait');
+  const [isBatchMode, setIsBatchMode] = useState(false);
 
   const handleUpload = (file: File) => {
     const url = URL.createObjectURL(file);
@@ -21,7 +25,6 @@ const Index = () => {
 
   const handleEnhance = () => {
     setIsProcessing(true);
-    // Simulate AI processing
     setTimeout(() => {
       setIsProcessing(false);
       setIsEnhanced(true);
@@ -36,14 +39,39 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-          AI Photo Enhancer
-          <div className="px-2 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md">
-            Beta
-          </div>
-        </h1>
-        <p className="text-slate-500 mt-2">Transform your low-quality photos into high-resolution masterpieces.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+            AI Photo Enhancer
+            <div className="px-2 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md">
+              Beta
+            </div>
+          </h1>
+          <p className="text-slate-500 mt-2">Transform your low-quality photos into high-resolution masterpieces.</p>
+        </div>
+
+        <div className="flex bg-white p-1 rounded-xl border border-slate-100 shadow-sm">
+          <button 
+            onClick={() => setIsBatchMode(false)}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all",
+              !isBatchMode ? "bg-indigo-600 text-white shadow-md" : "text-slate-500 hover:text-slate-900"
+            )}
+          >
+            <ImageIcon className="w-4 h-4" />
+            Single
+          </button>
+          <button 
+            onClick={() => setIsBatchMode(true)}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all",
+              isBatchMode ? "bg-indigo-600 text-white shadow-md" : "text-slate-500 hover:text-slate-900"
+            )}
+          >
+            <Layers className="w-4 h-4" />
+            Batch
+          </button>
+        </div>
       </div>
 
       {!image ? (
@@ -80,7 +108,7 @@ const Index = () => {
             {isEnhanced ? (
               <ComparisonSlider 
                 before={image} 
-                after={image} // In a real app, this would be the processed URL
+                after={image} 
               />
             ) : (
               <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl bg-slate-200">
@@ -89,14 +117,19 @@ const Index = () => {
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center text-white">
                     <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4" />
                     <p className="font-bold text-lg">Analyzing Pixels...</p>
-                    <p className="text-indigo-200 text-sm">Applying neural networks</p>
+                    <p className="text-indigo-200 text-sm">Applying {selectedModel} neural network</p>
                   </div>
                 )}
               </div>
             )}
           </div>
           
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Select AI Model</h3>
+              <ModelSelector selectedModel={selectedModel} onSelect={setSelectedModel} />
+            </div>
+            
             <EnhancementControls 
               onEnhance={handleEnhance} 
               isProcessing={isProcessing} 
