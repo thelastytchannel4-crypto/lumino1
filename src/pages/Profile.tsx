@@ -3,30 +3,50 @@
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Camera, Mail, MapPin, Calendar, Edit3, Shield } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Profile = () => {
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto">
-        <div className="relative h-48 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-t-[40px]">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative h-48 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-t-[40px]"
+        >
           <div className="absolute -bottom-16 left-12 flex items-end gap-6">
-            <div className="relative">
-              <div className="w-32 h-32 rounded-3xl border-4 border-white bg-slate-200 overflow-hidden shadow-xl">
+            <motion.div 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="relative"
+            >
+              <div className="w-32 h-32 rounded-3xl border-4 border-white dark:border-slate-900 bg-slate-200 overflow-hidden shadow-xl">
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Profile" className="w-full h-full object-cover" />
               </div>
-              <button className="absolute -bottom-2 -right-2 p-2 bg-white rounded-xl shadow-lg text-indigo-600 hover:scale-110 transition-transform">
+              <button className="absolute -bottom-2 -right-2 p-2 bg-white dark:bg-slate-800 rounded-xl shadow-lg text-indigo-600 hover:scale-110 transition-transform">
                 <Camera className="w-4 h-4" />
               </button>
-            </div>
-            <div className="mb-4">
+            </motion.div>
+            <motion.div 
+              initial={{ x: 20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mb-4"
+            >
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Alex Rivera</h1>
               <p className="text-slate-500 font-medium">Professional Photographer</p>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-1 space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="md:col-span-1 space-y-6"
+          >
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
               <h3 className="font-bold text-slate-900 dark:text-white mb-4">About</h3>
               <div className="space-y-4">
@@ -45,7 +65,10 @@ const Profile = () => {
               </div>
             </div>
 
-            <div className="bg-indigo-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-100">
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              className="bg-indigo-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-100 dark:shadow-none"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="w-5 h-5" />
                 <h3 className="font-bold">Verified Account</h3>
@@ -53,10 +76,15 @@ const Profile = () => {
               <p className="text-xs text-indigo-100 leading-relaxed">
                 Your account is in good standing. You have full access to all Lumina AI features.
               </p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <div className="md:col-span-2 space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+            className="md:col-span-2 space-y-6"
+          >
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Personal Information</h3>
@@ -83,7 +111,7 @@ const Profile = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </MainLayout>

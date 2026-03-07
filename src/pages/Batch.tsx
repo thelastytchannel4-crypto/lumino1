@@ -4,16 +4,15 @@ import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { 
   Upload, 
-  Image as ImageIcon, 
   X, 
   Play, 
   CheckCircle2, 
-  Loader2,
-  AlertCircle
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { showSuccess } from '@/utils/toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface BatchFile {
   id: string;
@@ -45,121 +44,173 @@ const Batch = () => {
 
   const startBatch = async () => {
     setIsProcessing(true);
-    
     for (let i = 0; i < files.length; i++) {
       const fileId = files[i].id;
-      
-      // Update status to processing
       setFiles(prev => prev.map(f => f.id === fileId ? { ...f, status: 'processing' } : f));
-      
-      // Simulate progress
       for (let p = 0; p <= 100; p += 10) {
         await new Promise(resolve => setTimeout(resolve, 100));
         setFiles(prev => prev.map(f => f.id === fileId ? { ...f, progress: p } : f));
       }
-      
-      // Update status to completed
       setFiles(prev => prev.map(f => f.id === fileId ? { ...f, status: 'completed' } : f));
     }
-    
     setIsProcessing(false);
     showSuccess(`Successfully processed ${files.length} images!`);
   };
 
   return (
     <MainLayout>
-      <div className="mb-8 flex items-center justify-between">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8 flex items-center justify-between"
+      >
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Batch Processing</h1>
-          <p className="text-slate-500 mt-2">Enhance multiple photos simultaneously with consistent settings.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Batch Processing</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">Enhance multiple photos simultaneously with consistent settings.</p>
         </div>
         
-        {files.length > 0 && (
-          <button
-            onClick={startBatch}
-            disabled={isProcessing}
-            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
-          >
-            {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5 fill-current" />}
-            {isProcessing ? 'Processing Queue...' : 'Start Batch Process'}
-          </button>
-        )}
-      </div>
+        <AnimatePresence>
+          {files.length > 0 && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={startBatch}
+              disabled={isProcessing}
+              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
+            >
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5 fill-current" />}
+              {isProcessing ? 'Processing Queue...' : 'Start Batch Process'}
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
-      {files.length === 0 ? (
-        <div className="border-2 border-dashed border-slate-200 rounded-[40px] p-20 flex flex-col items-center justify-center text-center bg-white">
-          <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mb-6">
-            <Upload className="w-10 h-10 text-indigo-600" />
-          </div>
-          <h3 className="text-2xl font-bold text-slate-900 mb-2">Upload multiple photos</h3>
-          <p className="text-slate-500 max-w-sm mb-8">Select up to 50 images to process them all at once with your current AI settings.</p>
-          <label className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold cursor-pointer hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">
-            Select Files
-            <input type="file" multiple className="hidden" onChange={handleFileChange} accept="image/*" />
-          </label>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {files.map((item) => (
-            <div key={item.id} className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm group relative">
-              <button 
-                onClick={() => removeFile(item.id)}
-                className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-md text-slate-400 hover:text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+      <AnimatePresence mode="wait">
+        {files.length === 0 ? (
+          <motion.div 
+            key="empty"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[40px] p-20 flex flex-col items-center justify-center text-center bg-white dark:bg-slate-900"
+          >
+            <motion.div 
+              animate={{ y: [0, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 3 }}
+              className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl flex items-center justify-center mb-6"
+            >
+              <Upload className="w-10 h-10 text-indigo-600" />
+            </motion.div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Upload multiple photos</h3>
+            <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-8">Select up to 50 images to process them all at once with your current AI settings.</p>
+            <label className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold cursor-pointer hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">
+              Select Files
+              <input type="file" multiple className="hidden" onChange={handleFileChange} accept="image/*" />
+            </label>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="grid"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.05 } }
+            }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {files.map((item) => (
+              <motion.div 
+                key={item.id}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                layout
+                className="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm group relative"
               >
-                <X className="w-4 h-4" />
-              </button>
-              
-              <div className="aspect-video rounded-2xl overflow-hidden mb-4 bg-slate-100 relative">
-                <img src={item.preview} alt="Preview" className="w-full h-full object-cover" />
-                {item.status === 'processing' && (
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 text-white animate-spin" />
-                  </div>
-                )}
-                {item.status === 'completed' && (
-                  <div className="absolute inset-0 bg-emerald-500/20 backdrop-blur-[2px] flex items-center justify-center">
-                    <div className="bg-white rounded-full p-2 shadow-lg">
-                      <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold text-slate-900 truncate max-w-[150px]">{item.file.name}</p>
-                  <span className={cn(
-                    "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md",
-                    item.status === 'pending' && "bg-slate-100 text-slate-500",
-                    item.status === 'processing' && "bg-indigo-100 text-indigo-600",
-                    item.status === 'completed' && "bg-emerald-100 text-emerald-600",
-                  )}>
-                    {item.status}
-                  </span>
+                <button 
+                  onClick={() => removeFile(item.id)}
+                  className="absolute top-2 right-2 p-1.5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-400 hover:text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                
+                <div className="aspect-video rounded-2xl overflow-hidden mb-4 bg-slate-100 dark:bg-slate-800 relative">
+                  <img src={item.preview} alt="Preview" className="w-full h-full object-cover" />
+                  <AnimatePresence>
+                    {item.status === 'processing' && (
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center"
+                      >
+                        <Loader2 className="w-8 h-8 text-white animate-spin" />
+                      </motion.div>
+                    )}
+                    {item.status === 'completed' && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="absolute inset-0 bg-emerald-500/20 backdrop-blur-[2px] flex items-center justify-center"
+                      >
+                        <div className="bg-white rounded-full p-2 shadow-lg">
+                          <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
                 
-                {item.status === 'processing' && (
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-[10px] font-bold text-slate-400">
-                      <span>Progress</span>
-                      <span>{item.progress}%</span>
-                    </div>
-                    <Progress value={item.progress} className="h-1.5" />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[150px]">{item.file.name}</p>
+                    <span className={cn(
+                      "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md",
+                      item.status === 'pending' && "bg-slate-100 dark:bg-slate-800 text-slate-500",
+                      item.status === 'processing' && "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600",
+                      item.status === 'completed' && "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600",
+                    )}>
+                      {item.status}
+                    </span>
                   </div>
-                )}
+                  
+                  {item.status === 'processing' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="space-y-1.5"
+                    >
+                      <div className="flex justify-between text-[10px] font-bold text-slate-400">
+                        <span>Progress</span>
+                        <span>{item.progress}%</span>
+                      </div>
+                      <Progress value={item.progress} className="h-1.5" />
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+            
+            <motion.label 
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
+              }}
+              className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-4 flex flex-col items-center justify-center text-center bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-indigo-300 transition-all cursor-pointer group min-h-[200px]"
+            >
+              <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
+                <Upload className="w-5 h-5 text-indigo-600" />
               </div>
-            </div>
-          ))}
-          
-          <label className="border-2 border-dashed border-slate-200 rounded-3xl p-4 flex flex-col items-center justify-center text-center bg-slate-50/50 hover:bg-slate-50 hover:border-indigo-300 transition-all cursor-pointer group min-h-[200px]">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
-              <Upload className="w-5 h-5 text-indigo-600" />
-            </div>
-            <span className="text-sm font-bold text-slate-500">Add more photos</span>
-            <input type="file" multiple className="hidden" onChange={handleFileChange} accept="image/*" />
-          </label>
-        </div>
-      )}
+              <span className="text-sm font-bold text-slate-500">Add more photos</span>
+              <input type="file" multiple className="hidden" onChange={handleFileChange} accept="image/*" />
+            </motion.label>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </MainLayout>
   );
 };
