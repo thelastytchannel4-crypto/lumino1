@@ -92,7 +92,7 @@ const Index = () => {
               <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl bg-slate-200">
                 <img src={image} alt="Original" className="w-full h-full object-cover" />
                 {isProcessing && (
-                  <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center text-white p-8">
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-md flex flex-col items-center justify-center text-white p-8">
                     <div className="w-20 h-20 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-8" />
                     <h3 className="text-2xl font-bold mb-6">Enhancing your photo...</h3>
                     <ProcessingSteps />
@@ -107,6 +107,7 @@ const Index = () => {
               onEnhance={handleEnhance} 
               isProcessing={isProcessing} 
               isEnhanced={isEnhanced}
+              imageUrl={image}
             />
           </div>
         </div>

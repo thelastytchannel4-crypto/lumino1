@@ -17,9 +17,10 @@ interface EnhancementControlsProps {
   onEnhance: () => void;
   isProcessing: boolean;
   isEnhanced: boolean;
+  imageUrl: string | null;
 }
 
-const EnhancementControls = ({ onEnhance, isProcessing, isEnhanced }: EnhancementControlsProps) => {
+const EnhancementControls = ({ onEnhance, isProcessing, isEnhanced, imageUrl }: EnhancementControlsProps) => {
   return (
     <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm space-y-8 sticky top-24">
       <div>
@@ -102,7 +103,7 @@ const EnhancementControls = ({ onEnhance, isProcessing, isEnhanced }: Enhancemen
           )}
         </button>
         
-        {isEnhanced && <ExportDialog />}
+        {isEnhanced && imageUrl && <ExportDialog imageUrl={imageUrl} />}
       </div>
     </div>
   );

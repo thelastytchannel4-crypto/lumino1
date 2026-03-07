@@ -9,16 +9,33 @@ import {
   DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
-import { Download, FileImage, FileType, Check } from 'lucide-react';
+import { Download, FileType, Check } from 'lucide-react';
+import { showSuccess } from '@/utils/toast';
+
+interface ExportDialogProps {
+  imageUrl: string;
+}
 
 const formats = [
-  { id: 'png', label: 'PNG', desc: 'Lossless, best quality', size: '12.4 MB' },
-  { id: 'jpg', label: 'JPG', desc: 'Optimized for web', size: '2.1 MB' },
-  { id: 'webp', label: 'WebP', desc: 'Modern, small size', size: '1.8 MB' },
+  { id: 'png', label: 'PNG', desc: 'Lossless, best quality', extension: '.png' },
+  { id: 'jpg', label: 'JPG', desc: 'Optimized for web', extension: '.jpg' },
+  { id: 'webp', label: 'WebP', desc: 'Modern, small size', extension: '.webp' },
 ];
 
-const ExportDialog = () => {
+const ExportDialog = ({ imageUrl }: ExportDialogProps) => {
   const [selected, setSelected] = React.useState('png');
+
+  const handleDownload = () => {
+    const format = formats.find(f => f.id === selected);
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `lumina-enhanced-${Date.now()}${format?.extension || '.png'}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showSuccess(`Image downloaded as ${format?.label}`);
+  };
 
   return (
     <Dialog>
@@ -61,7 +78,10 @@ const ExportDialog = () => {
         </div>
 
         <DialogFooter>
-          <button className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+          <button 
+            onClick={handleDownload}
+            className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+          >
             Confirm & Download
           </button>
         </DialogFooter>

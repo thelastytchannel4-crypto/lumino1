@@ -3,6 +3,7 @@
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Download, Eye, Trash2, Calendar, HardDrive } from 'lucide-react';
+import { showSuccess } from '@/utils/toast';
 
 const mockHistory = [
   { id: 1, name: 'portrait_01.jpg', date: '2 hours ago', size: '4.2 MB', thumb: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop' },
@@ -12,6 +13,16 @@ const mockHistory = [
 ];
 
 const History = () => {
+  const handleDownload = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showSuccess(`Downloading ${filename}...`);
+  };
+
   return (
     <MainLayout>
       <div className="mb-8">
@@ -28,7 +39,10 @@ const History = () => {
                 <button className="p-3 bg-white text-slate-900 rounded-2xl hover:bg-indigo-600 hover:text-white transition-colors shadow-lg">
                   <Eye className="w-5 h-5" />
                 </button>
-                <button className="p-3 bg-white text-slate-900 rounded-2xl hover:bg-indigo-600 hover:text-white transition-colors shadow-lg">
+                <button 
+                  onClick={() => handleDownload(item.thumb, item.name)}
+                  className="p-3 bg-white text-slate-900 rounded-2xl hover:bg-indigo-600 hover:text-white transition-colors shadow-lg"
+                >
                   <Download className="w-5 h-5" />
                 </button>
               </div>
