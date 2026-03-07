@@ -1,8 +1,8 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Download, Eye, Trash2, Calendar, HardDrive } from 'lucide-react';
+import { Download, Eye, Trash2, Calendar, HardDrive, Lock, LogIn } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
 
 const mockHistory = [
@@ -13,6 +13,9 @@ const mockHistory = [
 ];
 
 const History = () => {
+  // Simulating guest state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const handleDownload = (url: string, filename: string) => {
     const link = document.createElement('a');
     link.href = url;
@@ -26,51 +29,70 @@ const History = () => {
   return (
     <MainLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Enhancement History</h1>
-        <p className="text-slate-500 mt-2">Access and download your previously processed images.</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Enhancement History</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-2">Access and download your previously processed images.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {mockHistory.map((item) => (
-          <div key={item.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden group hover:shadow-md transition-all">
-            <div className="aspect-square relative overflow-hidden">
-              <img src={item.thumb} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                <button className="p-3 bg-white text-slate-900 rounded-2xl hover:bg-indigo-600 hover:text-white transition-colors shadow-lg">
-                  <Eye className="w-5 h-5" />
-                </button>
-                <button 
-                  onClick={() => handleDownload(item.thumb, item.name)}
-                  className="p-3 bg-white text-slate-900 rounded-2xl hover:bg-indigo-600 hover:text-white transition-colors shadow-lg"
-                >
-                  <Download className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-5">
-              <h3 className="font-bold text-slate-900 truncate mb-3">{item.name}</h3>
-              <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {item.date}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <HardDrive className="w-3.5 h-3.5" />
-                  {item.size}
+      {!isLoggedIn ? (
+        <div className="bg-white dark:bg-slate-900 rounded-[40px] p-16 border border-slate-100 dark:border-slate-800 shadow-sm text-center max-w-2xl mx-auto">
+          <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-10 h-10 text-indigo-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Sign in to save your history</h2>
+          <p className="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
+            You're currently in Guest Mode. Your enhanced photos are only stored temporarily. Sign in to sync your history across all your devices.
+          </p>
+          <button 
+            onClick={() => setIsLoggedIn(true)}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100"
+          >
+            <LogIn className="w-5 h-5" />
+            Sign In Now
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {mockHistory.map((item) => (
+            <div key={item.id} className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden group hover:shadow-md transition-all">
+              <div className="aspect-square relative overflow-hidden">
+                <img src={item.thumb} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <button className="p-3 bg-white text-slate-900 rounded-2xl hover:bg-indigo-600 hover:text-white transition-colors shadow-lg">
+                    <Eye className="w-5 h-5" />
+                  </button>
+                  <button 
+                    onClick={() => handleDownload(item.thumb, item.name)}
+                    className="p-3 bg-white text-slate-900 rounded-2xl hover:bg-indigo-600 hover:text-white transition-colors shadow-lg"
+                  >
+                    <Download className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
               
-              <div className="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">4K Enhanced</span>
-                <button className="text-slate-300 hover:text-red-500 transition-colors">
-                  <Trash2 className="w-4 h-4" />
-                </button>
+              <div className="p-5">
+                <h3 className="font-bold text-slate-900 dark:text-white truncate mb-3">{item.name}</h3>
+                <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {item.date}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <HardDrive className="w-3.5 h-3.5" />
+                    {item.size}
+                  </div>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded">4K Enhanced</span>
+                  <button className="text-slate-300 hover:text-red-500 transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </MainLayout>
   );
 };
