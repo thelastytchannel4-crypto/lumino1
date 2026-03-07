@@ -3,20 +3,15 @@
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import ImageUploader from '@/components/enhancer/ImageUploader';
-import BatchUploader from '@/components/enhancer/BatchUploader';
-import BatchProgress from '@/components/enhancer/BatchProgress';
 import ComparisonSlider from '@/components/enhancer/ComparisonSlider';
 import EnhancementControls from '@/components/enhancer/EnhancementControls';
 import ProcessingSteps from '@/components/enhancer/ProcessingSteps';
 import SampleGallery from '@/components/enhancer/SampleGallery';
 import { showSuccess } from '@/utils/toast';
-import { Sparkles, ArrowLeft, Layers, Image as ImageIcon } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sparkles, ArrowLeft } from 'lucide-react';
 
 const Index = () => {
-  const [mode, setMode] = useState<'single' | 'batch'>('single');
   const [image, setImage] = useState<string | null>(null);
-  const [batchFiles, setBatchFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isEnhanced, setIsEnhanced] = useState(false);
 
@@ -24,11 +19,6 @@ const Index = () => {
     const url = URL.createObjectURL(file);
     setImage(url);
     setIsEnhanced(false);
-  };
-
-  const handleBatchUpload = (files: File[]) => {
-    setBatchFiles(files);
-    setIsProcessing(true);
   };
 
   const handleSelectSample = (url: string) => {
@@ -39,6 +29,7 @@ const Index = () => {
   const handleEnhance = () => {
     setIsProcessing(true);
     setIsEnhanced(false);
+    // Simulate AI processing
     setTimeout(() => {
       setIsProcessing(false);
       setIsEnhanced(true);
@@ -48,58 +39,24 @@ const Index = () => {
 
   const reset = () => {
     setImage(null);
-    setBatchFiles([]);
     setIsEnhanced(false);
-    setIsProcessing(false);
   };
 
   return (
     <MainLayout>
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-            AI Photo Enhancer
-            <div className="px-2 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md">
-              Beta
-            </div>
-          </h1>
-          <p className="text-slate-500 mt-2">Transform your low-quality photos into high-resolution masterpieces.</p>
-        </div>
-
-        {!image && batchFiles.length === 0 && (
-          <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="w-auto">
-            <TabsList className="bg-white border border-slate-100 p-1 rounded-xl h-12">
-              <TabsTrigger value="single" className="rounded-lg px-4 data-[state=active]:bg-indigo-600 data-[state=active]:text-white">
-                <ImageIcon className="w-4 h-4 mr-2" />
-                Single
-              </TabsTrigger>
-              <TabsTrigger value="batch" className="rounded-lg px-4 data-[state=active]:bg-indigo-600 data-[state=active]:text-white">
-                <Layers className="w-4 h-4 mr-2" />
-                Batch
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        )}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+          AI Photo Enhancer
+          <div className="px-2 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md">
+            Beta
+          </div>
+        </h1>
+        <p className="text-slate-500 mt-2">Transform your low-quality photos into high-resolution masterpieces.</p>
       </div>
 
-      {batchFiles.length > 0 ? (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <button 
-            onClick={reset}
-            className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to uploader
-          </button>
-          <BatchProgress files={batchFiles} onComplete={() => showSuccess("Batch processing complete!")} />
-        </div>
-      ) : !image ? (
+      {!image ? (
         <div className="max-w-3xl mx-auto mt-12">
-          {mode === 'single' ? (
-            <ImageUploader onUpload={handleUpload} />
-          ) : (
-            <BatchUploader onUpload={handleBatchUpload} />
-          )}
+          <ImageUploader onUpload={handleUpload} />
           
           <div className="mt-12 grid grid-cols-3 gap-6">
             {[
