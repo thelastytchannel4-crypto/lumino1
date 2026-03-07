@@ -4,7 +4,6 @@ import React from 'react';
 import { 
   Maximize2, 
   Palette,
-  Download,
   RefreshCw,
   UserCheck,
   Paintbrush,
@@ -12,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import ExportDialog from './ExportDialog';
 
 interface EnhancementControlsProps {
   onEnhance: () => void;
@@ -29,7 +29,6 @@ const EnhancementControls = ({ onEnhance, isProcessing, isEnhanced }: Enhancemen
         </h3>
         
         <div className="space-y-6">
-          {/* Sliders */}
           <div className="space-y-3">
             <div className="flex justify-between text-sm font-medium">
               <span className="text-slate-600">Upscale Resolution</span>
@@ -50,7 +49,6 @@ const EnhancementControls = ({ onEnhance, isProcessing, isEnhanced }: Enhancemen
             </div>
           </div>
 
-          {/* Toggles */}
           <div className="pt-4 space-y-4 border-t border-slate-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -104,12 +102,7 @@ const EnhancementControls = ({ onEnhance, isProcessing, isEnhanced }: Enhancemen
           )}
         </button>
         
-        {isEnhanced && (
-          <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all animate-in fade-in slide-in-from-top-2">
-            <Download className="w-5 h-5" />
-            Download 4K Result
-          </button>
-        )}
+        {isEnhanced && <ExportDialog />}
       </div>
     </div>
   );

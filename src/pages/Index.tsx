@@ -7,6 +7,8 @@ import ComparisonSlider from '@/components/enhancer/ComparisonSlider';
 import EnhancementControls from '@/components/enhancer/EnhancementControls';
 import ProcessingSteps from '@/components/enhancer/ProcessingSteps';
 import SampleGallery from '@/components/enhancer/SampleGallery';
+import HeroSection from '@/components/enhancer/HeroSection';
+import ZoomPreview from '@/components/enhancer/ZoomPreview';
 import { showSuccess } from '@/utils/toast';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 
@@ -44,18 +46,9 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-          AI Photo Enhancer
-          <div className="px-2 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md">
-            Beta
-          </div>
-        </h1>
-        <p className="text-slate-500 mt-2">Transform your low-quality photos into high-resolution masterpieces.</p>
-      </div>
-
       {!image ? (
-        <div className="max-w-3xl mx-auto mt-12">
+        <div className="max-w-4xl mx-auto">
+          <HeroSection />
           <ImageUploader onUpload={handleUpload} />
           
           <div className="mt-12 grid grid-cols-3 gap-6">
@@ -88,10 +81,13 @@ const Index = () => {
             </button>
             
             {isEnhanced ? (
-              <ComparisonSlider 
-                before={image} 
-                after={image} 
-              />
+              <>
+                <ComparisonSlider 
+                  before={image} 
+                  after={image} 
+                />
+                <ZoomPreview image={image} />
+              </>
             ) : (
               <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl bg-slate-200">
                 <img src={image} alt="Original" className="w-full h-full object-cover" />
