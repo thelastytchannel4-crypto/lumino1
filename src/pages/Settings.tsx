@@ -8,12 +8,14 @@ import {
   CreditCard,
   ShieldCheck,
   Check,
-  Lock
+  Lock,
+  Code
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { showSuccess } from '@/utils/toast';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import CodeExporter from '@/components/settings/CodeExporter';
 
 const Settings = () => {
   const { theme, setTheme } = useTheme();
@@ -29,6 +31,7 @@ const Settings = () => {
     { icon: Bell, label: 'Notifications' },
     { icon: ShieldCheck, label: 'Privacy & Security' },
     { icon: CreditCard, label: 'Billing' },
+    { icon: Code, label: 'Code' },
   ];
 
   const handleToggle = (setting: string, value: boolean, setter: (v: boolean) => void) => {
@@ -181,6 +184,8 @@ const Settings = () => {
                   </div>
                 </div>
               )}
+
+              {activeTab === 'Code' && <CodeExporter />}
 
               {(activeTab === 'Privacy & Security' || activeTab === 'Billing') && (
                 <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 border border-slate-100 dark:border-slate-800 shadow-sm text-center">
