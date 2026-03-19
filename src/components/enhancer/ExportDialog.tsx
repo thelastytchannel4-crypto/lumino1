@@ -29,7 +29,7 @@ const ExportDialog = ({ imageUrl }: ExportDialogProps) => {
     const format = formats.find(f => f.id === selected);
     const link = document.createElement('a');
     link.href = imageUrl;
-    link.download = `lumina-enhanced-${Date.now()}${format?.extension || '.png'}`;
+    link.download = `lumino1-enhanced-${Date.now()}${format?.extension || '.png'}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

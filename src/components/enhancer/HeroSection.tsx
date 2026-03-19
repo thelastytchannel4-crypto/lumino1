@@ -19,7 +19,7 @@ const HeroSection = () => {
           className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-sm font-bold mb-6 shadow-sm"
         >
           <Sparkles className="w-4 h-4" />
-          <span>Powered by Lumina Neural Engine v4.0</span>
+          <span>Powered by Lumino1 Neural Engine v4.0</span>
         </motion.div>
         
         <div className="relative">

@@ -29,7 +29,7 @@ const Sidebar = () => {
         <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
           <Sparkles className="text-white w-6 h-6" />
         </div>
-        <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Lumina AI</span>
+        <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Lumino1</span>
       </div>
 
       <nav className="flex-1 px-4 py-4 space-y-2">
