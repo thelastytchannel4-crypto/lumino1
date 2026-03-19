@@ -6,7 +6,7 @@ import { Sparkles, Zap, ShieldCheck } from 'lucide-react';
 
 const HeroSection = () => {
   return (
-    <div className="text-center mb-16 mt-8 perspective-1000">
+    <div className="text-center mb-8 md:mb-16 mt-4 md:mt-8 perspective-1000">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -16,9 +16,9 @@ const HeroSection = () => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-sm font-bold mb-6 shadow-sm"
+          className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] md:text-sm font-bold mb-4 md:mb-6 shadow-sm"
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-3 h-3 md:w-4 h-4" />
           <span>Powered by Lumino1 Neural Engine v4.0</span>
         </motion.div>
         
@@ -32,7 +32,7 @@ const HeroSection = () => {
               delay: 0.3
             }}
             style={{ transformStyle: "preserve-3d" }}
-            className="text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-6 leading-[1.1]"
+            className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-4 md:mb-6 leading-[1.1]"
           >
             Professional AI <br />
             <motion.span 
@@ -51,12 +51,11 @@ const HeroSection = () => {
             </motion.span>
           </motion.h1>
 
-          {/* Subtle 3D shadow effect */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.1 }}
             transition={{ delay: 1, duration: 2 }}
-            className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-indigo-600 blur-3xl rounded-full pointer-events-none"
+            className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-indigo-600 blur-3xl rounded-full pointer-events-none hidden md:block"
           />
         </div>
         
@@ -64,24 +63,24 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed"
+          className="text-base md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed px-4"
         >
-          Upscale, denoise, and restore your photos in seconds. Used by over 50,000 photographers and designers worldwide.
+          Upscale, denoise, and restore your photos in seconds. Used by over 50,000 photographers worldwide.
         </motion.p>
 
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 1 }}
-          className="flex items-center justify-center gap-8 text-slate-400 dark:text-slate-500"
+          className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-slate-400 dark:text-slate-500"
         >
           <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-amber-500" />
-            <span className="text-sm font-medium">Instant Processing</span>
+            <Zap className="w-4 h-4 md:w-5 h-5 text-amber-500" />
+            <span className="text-xs md:text-sm font-medium">Instant Processing</span>
           </div>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-emerald-500" />
-            <span className="text-sm font-medium">Privacy Guaranteed</span>
+            <ShieldCheck className="w-4 h-4 md:w-5 h-5 text-emerald-500" />
+            <span className="text-xs md:text-sm font-medium">Privacy Guaranteed</span>
           </div>
         </motion.div>
       </motion.div>
