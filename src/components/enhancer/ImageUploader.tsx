@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
-import { Upload, Image as ImageIcon, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Upload, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ImageUploaderProps {
@@ -42,10 +42,10 @@ const ImageUploader = ({ onUpload }: ImageUploaderProps) => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={cn(
-        "relative border-2 border-dashed rounded-3xl p-12 transition-all duration-300 flex flex-col items-center justify-center text-center group cursor-pointer",
+        "relative border-2 border-dashed rounded-2xl md:rounded-[40px] p-8 md:p-20 transition-all duration-300 flex flex-col items-center justify-center text-center group cursor-pointer",
         isDragging 
           ? "border-indigo-500 bg-indigo-50/50 scale-[0.99]" 
-          : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50/50"
+          : "border-slate-200 bg-white dark:bg-slate-900 hover:border-indigo-300 hover:bg-slate-50/50 dark:hover:bg-slate-800/50"
       )}
     >
       <input
@@ -55,17 +55,17 @@ const ImageUploader = ({ onUpload }: ImageUploaderProps) => {
         accept="image/*"
       />
       
-      <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-        <Upload className="w-10 h-10 text-indigo-600" />
+      <div className="w-12 h-12 md:w-20 md:h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl md:rounded-3xl flex items-center justify-center mb-4 md:mb-8 group-hover:scale-110 transition-transform duration-300">
+        <Upload className="w-6 h-6 md:w-10 md:h-10 text-indigo-600" />
       </div>
       
-      <h3 className="text-xl font-bold text-slate-900 mb-2">Drop your photo here</h3>
-      <p className="text-slate-500 max-w-xs mx-auto">
+      <h3 className="text-lg md:text-2xl font-bold text-slate-900 dark:text-white mb-2">Drop your photo here</h3>
+      <p className="text-xs md:text-base text-slate-500 max-w-xs mx-auto mb-6 md:mb-10">
         Support JPG, PNG and WebP. Max file size 10MB.
       </p>
       
-      <div className="mt-8 flex items-center gap-2 text-sm font-medium text-indigo-600 bg-indigo-50 px-4 py-2 rounded-full">
-        <ImageIcon className="w-4 h-4" />
+      <div className="flex items-center gap-2 text-xs md:text-sm font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 md:px-6 md:py-3 rounded-full">
+        <ImageIcon className="w-3.5 h-3.5 md:w-4 h-4" />
         <span>Or browse files</span>
       </div>
     </div>

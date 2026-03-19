@@ -64,7 +64,7 @@ const Index = () => {
               variants={{
                 visible: { transition: { staggerChildren: 0.1 } }
               }}
-              className="mt-12 grid grid-cols-3 gap-6"
+              className="mt-8 md:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6"
             >
               {[
                 { title: 'Upscale', desc: 'Up to 4K resolution' },
@@ -77,13 +77,13 @@ const Index = () => {
                     hidden: { opacity: 0, y: 20 },
                     visible: { opacity: 1, y: 0 }
                   }}
-                  className="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 text-center shadow-sm"
+                  className="p-4 md:p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 text-center shadow-sm"
                 >
-                  <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Sparkles className="w-5 h-5 text-indigo-600" />
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center mx-auto mb-3 md:mb-4">
+                    <Sparkles className="w-4 h-4 md:w-5 h-5 text-indigo-600" />
                   </div>
-                  <h4 className="font-bold text-slate-900 dark:text-white">{feature.title}</h4>
-                  <p className="text-xs text-slate-500 mt-1">{feature.desc}</p>
+                  <h4 className="font-bold text-sm md:text-base text-slate-900 dark:text-white">{feature.title}</h4>
+                  <p className="text-[10px] md:text-xs text-slate-500 mt-1">{feature.desc}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -95,15 +95,15 @@ const Index = () => {
             key="editor-view"
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8"
           >
             <div className="lg:col-span-2 space-y-4">
               <motion.button 
                 whileHover={{ x: -4 }}
                 onClick={reset}
-                className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors"
+                className="flex items-center gap-2 text-xs md:text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3.5 h-3.5 md:w-4 h-4" />
                 Upload another photo
               </motion.button>
               
@@ -121,7 +121,7 @@ const Index = () => {
                     <ZoomPreview image={image} />
                   </motion.div>
                 ) : (
-                  <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl bg-slate-200">
+                  <div className="relative aspect-[4/3] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl bg-slate-200">
                     <img src={image} alt="Original" className="w-full h-full object-cover" />
                     <AnimatePresence>
                       {isProcessing && (
@@ -129,17 +129,17 @@ const Index = () => {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center text-white p-8 z-20"
+                          className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center text-white p-4 md:p-8 z-20"
                         >
                           <motion.div 
                             animate={{ rotate: 360 }}
                             transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                            className="w-20 h-20 border-4 border-indigo-500 border-t-transparent rounded-full mb-8" 
+                            className="w-12 h-12 md:w-20 md:h-20 border-3 md:border-4 border-indigo-500 border-t-transparent rounded-full mb-6 md:mb-8" 
                           />
                           <motion.h3 
                             initial={{ y: 10, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
-                            className="text-2xl font-bold mb-6"
+                            className="text-lg md:text-2xl font-bold mb-4 md:mb-6 text-center"
                           >
                             Enhancing your photo...
                           </motion.h3>

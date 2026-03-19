@@ -15,26 +15,26 @@ interface SampleGalleryProps {
 
 const SampleGallery = ({ onSelect }: SampleGalleryProps) => {
   return (
-    <div className="mt-16">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-bold text-slate-900">Try with a sample</h3>
-        <span className="text-sm text-slate-400 font-medium">No photo? No problem.</span>
+    <div className="mt-12 md:mt-16">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 gap-1">
+        <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Try with a sample</h3>
+        <span className="text-[10px] md:text-sm text-slate-400 font-medium">No photo? No problem.</span>
       </div>
       
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {samples.map((sample) => (
           <button
             key={sample.id}
             onClick={() => onSelect(sample.url)}
-            className="group relative aspect-square rounded-2xl overflow-hidden border-2 border-transparent hover:border-indigo-600 transition-all"
+            className="group relative aspect-square rounded-xl md:rounded-2xl overflow-hidden border-2 border-transparent hover:border-indigo-600 transition-all"
           >
             <img 
               src={sample.url} 
               alt={sample.label} 
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-              <span className="text-white text-xs font-bold">{sample.label}</span>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2 md:p-3">
+              <span className="text-white text-[10px] md:text-xs font-bold">{sample.label}</span>
             </div>
           </button>
         ))}
