@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import ImageUploader from '@/components/enhancer/ImageUploader';
-import { removeBackground } from '@imgly/background-removal';
+import { removeBackground, Config } from '@imgly/background-removal';
 import { showSuccess, showError } from '@/utils/toast';
 import { 
   Eraser, 
@@ -14,34 +14,98 @@ import {
   Download,
   Loader2,
   Zap,
-  RefreshCw
+  RefreshCw,
+  Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Progress } from '@/components/ui/progress';
 
 const BackgroundRemover = () => {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isModelLoaded, setIsModelLoaded] = useState(false);
 
-  const handleUpload = async (file: File) => {
-    const url = URL.createObjectURL(file);
-    setOriginalImage(url);
-    setProcessedImage(null);
-    setProgress(0);
-    
-    await processImage(file);
+  // 1. Preload the model on mount
+  useEffect(() => {
+    const preload = async () => {
+      try {
+        // Calling with a tiny transparent pixel to trigger model download/cache
+        const tinyPixel = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
+        await removeBackground(tinyPixel, { 
+          progress: () => {},
+          model: 'medium' // Using medium for best balance of speed/quality
+        });
+        setIsModelLoaded(true);
+      } catch (e) {
+        console.warn("Model preloading failed, will load on demand", e);
+      }
+    };
+    preload();
+  }, []);
+
+  // 2. Helper to resize image to max 1024px for speed
+  const resizeImage = (file: File): Promise<Blob | File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX_WIDTH = 1024;
+          const MAX_HEIGHT = 1024;
+          let width = img.width;
+          let height = img.height;
+
+          if (width <= MAX_WIDTH && height <= MAX_HEIGHT) {
+            resolve(file);
+            return;
+          }
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            resolve(blob || file);
+          }, 'image/png');
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
-  const processImage = async (imageSource: File | string) => {
+  const processImage = useCallback(async (imageSource: File | Blob | string) => {
     setIsProcessing(true);
+    setProgress(0);
+    
     try {
-      const blob = await removeBackground(imageSource, {
+      const config: Config = {
         progress: (item, progressValue) => {
           setProgress(Math.round(progressValue * 100));
+        },
+        model: 'medium',
+        output: {
+          type: 'image/png',
+          quality: 0.8
         }
-      });
-      
+      };
+
+      const blob = await removeBackground(imageSource, config);
       const resultUrl = URL.createObjectURL(blob);
       setProcessedImage(resultUrl);
       showSuccess("Background removed successfully!");
@@ -51,6 +115,16 @@ const BackgroundRemover = () => {
     } finally {
       setIsProcessing(false);
     }
+  }, []);
+
+  const handleUpload = async (file: File) => {
+    const url = URL.createObjectURL(file);
+    setOriginalImage(url);
+    setProcessedImage(null);
+    
+    // 3. Resize before processing to speed up removal
+    const optimizedImage = await resizeImage(file);
+    await processImage(optimizedImage);
   };
 
   const handleDownload = () => {
@@ -88,18 +162,30 @@ const BackgroundRemover = () => {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-full text-sm font-bold mb-6"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>AI-Powered Neural Extraction</span>
+                <span>{isModelLoaded ? 'AI Engine Ready' : 'Initializing AI Engine...'}</span>
               </motion.div>
               <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-6">
                 Remove Backgrounds <br />
                 <span className="text-indigo-600">Instantly.</span>
               </h1>
               <p className="text-lg text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-                Professional-grade background removal powered by AI. Get high-quality transparent PNGs in seconds, right in your browser.
+                Professional-grade background removal optimized for speed. Get high-quality transparent PNGs in seconds.
               </p>
             </div>
 
             <ImageUploader onUpload={handleUpload} />
+            
+            <div className="mt-8 flex items-center justify-center gap-4 text-slate-400 text-sm">
+              <div className="flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-amber-500" />
+                <span>GPU Accelerated</span>
+              </div>
+              <div className="w-1 h-1 bg-slate-300 rounded-full" />
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <span>Private & Secure</span>
+              </div>
+            </div>
           </motion.div>
         ) : (
           <motion.div 
@@ -117,7 +203,7 @@ const BackgroundRemover = () => {
                 {isProcessing && (
                   <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full flex items-center gap-2">
                     <Loader2 className="w-3 h-3 animate-spin" />
-                    AI is analyzing your image... {progress}%
+                    Processing... {progress}%
                   </span>
                 )}
               </div>
@@ -136,7 +222,6 @@ const BackgroundRemover = () => {
                   }} 
                 />
                 
-                {/* The Image Display */}
                 <div className="relative w-full h-full flex items-center justify-center p-4 md:p-8">
                   <AnimatePresence mode="wait">
                     {isProcessing ? (
@@ -145,9 +230,9 @@ const BackgroundRemover = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/40 backdrop-blur-sm"
+                        className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/40 backdrop-blur-sm p-6"
                       >
-                        <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center">
+                        <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center w-full max-w-sm">
                           <div className="relative w-16 h-16 mb-6">
                             <motion.div 
                               className="absolute inset-0 border-4 border-indigo-600 border-t-transparent rounded-full"
@@ -158,8 +243,20 @@ const BackgroundRemover = () => {
                               <Zap className="w-6 h-6 text-indigo-600 animate-pulse" />
                             </div>
                           </div>
-                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Processing Image</h3>
-                          <p className="text-sm text-slate-500 text-center max-w-[200px]">Our AI is isolating the subject and removing pixels... {progress}%</p>
+                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Removing Background</h3>
+                          
+                          <div className="w-full space-y-2">
+                            <div className="flex justify-between text-xs font-bold text-slate-400">
+                              <span>AI Analysis</span>
+                              <span>{progress}%</span>
+                            </div>
+                            <Progress value={progress} className="h-2" />
+                          </div>
+                          
+                          <p className="text-xs text-slate-400 text-center mt-6 flex items-center gap-1.5">
+                            <Info className="w-3 h-3" />
+                            Optimizing for speed (Max 1024px)
+                          </p>
                         </div>
                       </motion.div>
                     ) : processedImage ? (
@@ -185,23 +282,6 @@ const BackgroundRemover = () => {
                   </AnimatePresence>
                 </div>
               </div>
-              
-              {processedImage && !isProcessing && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center justify-center gap-6"
-                >
-                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-5 py-2.5 rounded-full shadow-sm">
-                    <ShieldCheck className="w-4 h-4" />
-                    Subject Isolated
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-5 py-2.5 rounded-full shadow-sm">
-                    <Scissors className="w-4 h-4" />
-                    Background Removed
-                  </div>
-                </motion.div>
-              )}
             </div>
             
             <div className="lg:col-span-1">
