@@ -224,6 +224,23 @@ const BackgroundRemover = () => {
             </div>
 
             <ImageUploader onUpload={handleUpload} />
+
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mt-8 p-4 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100/50 dark:border-indigo-800/30 rounded-3xl flex items-start gap-4 max-w-2xl mx-auto"
+            >
+              <div className="w-10 h-10 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Info className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Processing Note</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Initializing... the progress bar may not show immediate progress while the AI engine warms up, but the process will be complete in about 5 seconds.
+                </p>
+              </div>
+            </motion.div>
             
             <div className="mt-8 flex items-center justify-center gap-4 text-slate-400 text-sm">
               <div className="flex items-center gap-1.5">
