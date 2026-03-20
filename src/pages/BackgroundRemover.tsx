@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import ImageUploader from '@/components/enhancer/ImageUploader';
 import { removeBackground, Config } from '@imgly/background-removal';
@@ -10,7 +10,6 @@ import {
   ArrowLeft, 
   Sparkles, 
   ShieldCheck, 
-  Scissors, 
   Download,
   Loader2,
   Zap,
@@ -20,32 +19,69 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 
+const STAGES = [
+  { threshold: 20, message: "Uploading image..." },
+  { threshold: 40, message: "Analyzing image structure..." },
+  { threshold: 65, message: "Detecting subject edges..." },
+  { threshold: 85, message: "Removing background..." },
+  { threshold: 99, message: "Finalizing cutout..." },
+];
+
 const BackgroundRemover = () => {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [visualProgress, setVisualProgress] = useState(0);
+  const [currentMessage, setCurrentMessage] = useState("");
   const [isModelLoaded, setIsModelLoaded] = useState(false);
+  
+  const progressInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Preload the model on mount
+  // Preload the model on mount
   useEffect(() => {
     const preload = async () => {
       try {
-        // Calling with a tiny transparent pixel to trigger model download/cache
         const tinyPixel = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
         await removeBackground(tinyPixel, { 
           progress: () => {},
-          model: 'medium' // Using medium for best balance of speed/quality
+          model: 'medium'
         });
         setIsModelLoaded(true);
       } catch (e) {
-        console.warn("Model preloading failed, will load on demand", e);
+        console.warn("Model preloading failed", e);
       }
     };
     preload();
   }, []);
 
-  // 2. Helper to resize image to max 1024px for speed
+  // Handle smooth progress simulation
+  useEffect(() => {
+    if (isProcessing) {
+      setVisualProgress(0);
+      progressInterval.current = setInterval(() => {
+        setVisualProgress(prev => {
+          if (prev < 99) {
+            // Slow down as it gets closer to 99
+            const increment = prev < 80 ? Math.random() * 5 : Math.random() * 0.5;
+            return Math.min(99, prev + increment);
+          }
+          return prev;
+        });
+      }, 150);
+    } else {
+      if (progressInterval.current) clearInterval(progressInterval.current);
+    }
+    return () => {
+      if (progressInterval.current) clearInterval(progressInterval.current);
+    };
+  }, [isProcessing]);
+
+  // Update message based on progress
+  useEffect(() => {
+    const stage = STAGES.find(s => visualProgress <= s.threshold) || STAGES[STAGES.length - 1];
+    setCurrentMessage(stage.message);
+  }, [visualProgress]);
+
   const resizeImage = (file: File): Promise<Blob | File> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -91,13 +127,9 @@ const BackgroundRemover = () => {
 
   const processImage = useCallback(async (imageSource: File | Blob | string) => {
     setIsProcessing(true);
-    setProgress(0);
     
     try {
       const config: Config = {
-        progress: (item, progressValue) => {
-          setProgress(Math.round(progressValue * 100));
-        },
         model: 'medium',
         output: {
           type: 'image/png',
@@ -107,12 +139,19 @@ const BackgroundRemover = () => {
 
       const blob = await removeBackground(imageSource, config);
       const resultUrl = URL.createObjectURL(blob);
-      setProcessedImage(resultUrl);
-      showSuccess("Background removed successfully!");
+      
+      // Jump to 100% when actually done
+      setVisualProgress(100);
+      setCurrentMessage("Complete!");
+      
+      setTimeout(() => {
+        setProcessedImage(resultUrl);
+        setIsProcessing(false);
+        showSuccess("Background removed successfully!");
+      }, 500);
     } catch (error) {
       console.error("Background removal failed:", error);
       showError("Failed to remove background. Please try another image.");
-    } finally {
       setIsProcessing(false);
     }
   }, []);
@@ -122,7 +161,6 @@ const BackgroundRemover = () => {
     setOriginalImage(url);
     setProcessedImage(null);
     
-    // 3. Resize before processing to speed up removal
     const optimizedImage = await resizeImage(file);
     await processImage(optimizedImage);
   };
@@ -141,7 +179,7 @@ const BackgroundRemover = () => {
     setOriginalImage(null);
     setProcessedImage(null);
     setIsProcessing(false);
-    setProgress(0);
+    setVisualProgress(0);
   };
 
   return (
@@ -203,12 +241,14 @@ const BackgroundRemover = () => {
                 {isProcessing && (
                   <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full flex items-center gap-2">
                     <Loader2 className="w-3 h-3 animate-spin" />
-                    Processing... {progress}%
+                    {currentMessage}
                   </span>
                 )}
               </div>
               
-              <div 
+              <motion.div 
+                animate={isProcessing ? { scale: [1, 1.01, 1], opacity: [1, 0.8, 1] } : {}}
+                transition={isProcessing ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
                 className="relative aspect-[4/3] rounded-[40px] overflow-hidden shadow-2xl bg-slate-100 dark:bg-slate-900 group"
               >
                 {/* Photoshop-style Transparency Grid */}
@@ -247,10 +287,10 @@ const BackgroundRemover = () => {
                           
                           <div className="w-full space-y-2">
                             <div className="flex justify-between text-xs font-bold text-slate-400">
-                              <span>AI Analysis</span>
-                              <span>{progress}%</span>
+                              <span className="animate-pulse">{currentMessage}</span>
+                              <span>{Math.round(visualProgress)}%</span>
                             </div>
-                            <Progress value={progress} className="h-2" />
+                            <Progress value={visualProgress} className="h-2" />
                           </div>
                           
                           <p className="text-xs text-slate-400 text-center mt-6 flex items-center gap-1.5">
@@ -281,7 +321,7 @@ const BackgroundRemover = () => {
                     )}
                   </AnimatePresence>
                 </div>
-              </div>
+              </motion.div>
             </div>
             
             <div className="lg:col-span-1">
@@ -296,7 +336,7 @@ const BackgroundRemover = () => {
                     <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                       <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Status</p>
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                        {isProcessing ? `AI is processing... ${progress}%` : processedImage ? 'Ready for download' : 'Waiting for upload'}
+                        {isProcessing ? currentMessage : processedImage ? 'Ready for download' : 'Waiting for upload'}
                       </p>
                     </div>
 
