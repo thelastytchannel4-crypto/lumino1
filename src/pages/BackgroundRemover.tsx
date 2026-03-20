@@ -22,11 +22,13 @@ const BackgroundRemover = () => {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const handleUpload = async (file: File) => {
     const url = URL.createObjectURL(file);
     setOriginalImage(url);
     setProcessedImage(null);
+    setProgress(0);
     
     await processImage(file);
   };
@@ -35,9 +37,8 @@ const BackgroundRemover = () => {
     setIsProcessing(true);
     try {
       const blob = await removeBackground(imageSource, {
-        progress: (item, progress) => {
-          // Optional: handle progress updates if needed
-          console.log(`Processing ${item}: ${Math.round(progress * 100)}%`);
+        progress: (item, progressValue) => {
+          setProgress(Math.round(progressValue * 100));
         }
       });
       
@@ -54,12 +55,11 @@ const BackgroundRemover = () => {
 
   const handleDownload = () => {
     if (!processedImage) return;
-    const link = document.createElement('a');
+    const link = document.body.appendChild(document.createElement('a'));
     link.href = processedImage;
     link.download = `lumino1-cutout-${Date.now()}.png`;
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     showSuccess("Transparent PNG downloaded!");
   };
 
@@ -67,6 +67,7 @@ const BackgroundRemover = () => {
     setOriginalImage(null);
     setProcessedImage(null);
     setIsProcessing(false);
+    setProgress(0);
   };
 
   return (
@@ -116,7 +117,7 @@ const BackgroundRemover = () => {
                 {isProcessing && (
                   <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full flex items-center gap-2">
                     <Loader2 className="w-3 h-3 animate-spin" />
-                    AI is analyzing your image...
+                    AI is analyzing your image... {progress}%
                   </span>
                 )}
               </div>
@@ -158,7 +159,7 @@ const BackgroundRemover = () => {
                             </div>
                           </div>
                           <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Processing Image</h3>
-                          <p className="text-sm text-slate-500 text-center max-w-[200px]">Our AI is isolating the subject and removing pixels...</p>
+                          <p className="text-sm text-slate-500 text-center max-w-[200px]">Our AI is isolating the subject and removing pixels... {progress}%</p>
                         </div>
                       </motion.div>
                     ) : processedImage ? (
@@ -215,7 +216,7 @@ const BackgroundRemover = () => {
                     <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                       <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Status</p>
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                        {isProcessing ? 'AI is processing...' : processedImage ? 'Ready for download' : 'Waiting for upload'}
+                        {isProcessing ? `AI is processing... ${progress}%` : processedImage ? 'Ready for download' : 'Waiting for upload'}
                       </p>
                     </div>
 
