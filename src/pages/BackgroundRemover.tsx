@@ -27,7 +27,8 @@ const BackgroundRemover = () => {
   const [currentMessage, setCurrentMessage] = useState("");
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   
-  const progressInterval = useRef<NodeJS.Timeout | null>(null);
+  const rafId = useRef<number | null>(null);
+  const lastUpdate = useRef<number>(0);
 
   // Preload the model on mount
   useEffect(() => {
@@ -44,41 +45,52 @@ const BackgroundRemover = () => {
       }
     };
     preload();
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
   }, []);
 
-  // Handle smooth, non-freezing progress simulation
-  useEffect(() => {
-    if (isProcessing) {
-      setVisualProgress(0);
-      setCurrentMessage("Uploading image...");
-      
-      progressInterval.current = setInterval(() => {
+  const startFakeProgress = useCallback(() => {
+    setVisualProgress(0);
+    setCurrentMessage("Initializing AI engine...");
+    lastUpdate.current = performance.now();
+
+    const animate = (time: number) => {
+      const deltaTime = time - lastUpdate.current;
+
+      if (deltaTime >= 100) { // Every 100ms
         setVisualProgress(prev => {
-          if (prev < 30) {
-            // Phase 1: Quick move to 30% (approx 2 seconds at 100ms intervals)
-            const next = prev + 1.5;
-            setCurrentMessage("Analyzing image structure...");
-            return next;
-          } else if (prev < 90) {
-            // Phase 2: Slow crawl from 30% to 90%
-            const next = prev + (Math.random() * 0.4);
-            if (prev < 60) setCurrentMessage("Detecting subject edges...");
+          if (prev < 89) {
+            const next = prev + 0.5;
+            // Update messages based on progress thresholds
+            if (next < 20) setCurrentMessage("Uploading image...");
+            else if (next < 45) setCurrentMessage("Analyzing structure...");
+            else if (next < 70) setCurrentMessage("Detecting subject...");
             else setCurrentMessage("Removing background...");
-            return Math.min(90, next);
+            return next;
           } else {
-            // Phase 3: Stay at 90% with "Almost done" message
-            setCurrentMessage("Almost done...");
-            return 90;
+            setCurrentMessage("Almost there...");
+            return 89;
           }
         });
-      }, 100);
-    } else {
-      if (progressInterval.current) clearInterval(progressInterval.current);
-    }
-    return () => {
-      if (progressInterval.current) clearInterval(progressInterval.current);
+        lastUpdate.current = time;
+      }
+      rafId.current = requestAnimationFrame(animate);
     };
-  }, [isProcessing]);
+
+    rafId.current = requestAnimationFrame(animate);
+  }, []);
+
+  const stopProgress = useCallback((success: boolean) => {
+    if (rafId.current) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    }
+    if (success) {
+      setVisualProgress(100);
+      setCurrentMessage("Background removed successfully!");
+    }
+  }, []);
 
   const resizeImage = (file: File): Promise<Blob | File> => {
     return new Promise((resolve) => {
@@ -125,6 +137,8 @@ const BackgroundRemover = () => {
 
   const processImage = useCallback(async (imageSource: File | Blob | string) => {
     setIsProcessing(true);
+    // Start animation BEFORE the heavy processing starts
+    startFakeProgress();
     
     try {
       const config: Config = {
@@ -138,9 +152,8 @@ const BackgroundRemover = () => {
       const blob = await removeBackground(imageSource, config);
       const resultUrl = URL.createObjectURL(blob);
       
-      // Finalize: Jump to 100% and show success
-      setVisualProgress(100);
-      setCurrentMessage("Background removed successfully!");
+      // Stop animation and jump to 100%
+      stopProgress(true);
       
       setTimeout(() => {
         setProcessedImage(resultUrl);
@@ -149,10 +162,11 @@ const BackgroundRemover = () => {
       }, 600);
     } catch (error) {
       console.error("Background removal failed:", error);
+      stopProgress(false);
       showError("Failed to remove background. Please try another image.");
       setIsProcessing(false);
     }
-  }, []);
+  }, [startFakeProgress, stopProgress]);
 
   const handleUpload = async (file: File) => {
     const url = URL.createObjectURL(file);
@@ -174,6 +188,7 @@ const BackgroundRemover = () => {
   };
 
   const reset = () => {
+    if (rafId.current) cancelAnimationFrame(rafId.current);
     setOriginalImage(null);
     setProcessedImage(null);
     setIsProcessing(false);
@@ -289,7 +304,7 @@ const BackgroundRemover = () => {
                           
                           <div className="w-full space-y-2">
                             <div className="flex justify-between text-xs font-bold text-slate-400">
-                              <span className={visualProgress >= 90 ? "animate-bounce" : "animate-pulse"}>
+                              <span className={visualProgress >= 89 ? "animate-bounce" : "animate-pulse"}>
                                 {currentMessage}
                               </span>
                               <span>{Math.round(visualProgress)}%</span>
