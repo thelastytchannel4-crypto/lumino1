@@ -8,12 +8,14 @@ import {
   Settings, 
   Sparkles, 
   Layers,
-  Eye
+  Eye,
+  Eraser
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Enhancer', path: '/' },
+  { icon: Eraser, label: 'BG Remover', path: '/background-remover' },
   { icon: Layers, label: 'Batch Process', path: '/batch' },
   { icon: Eye, label: 'Showcase', path: '/showcase' },
   { icon: History, label: 'History', path: '/history' },

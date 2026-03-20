@@ -10,13 +10,15 @@ import {
   Layers,
   Eye,
   Menu,
-  X
+  X,
+  Eraser
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Enhancer', path: '/' },
+  { icon: Eraser, label: 'BG Remover', path: '/background-remover' },
   { icon: Layers, label: 'Batch Process', path: '/batch' },
   { icon: Eye, label: 'Showcase', path: '/showcase' },
   { icon: History, label: 'History', path: '/history' },
