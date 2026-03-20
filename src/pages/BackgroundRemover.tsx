@@ -14,7 +14,8 @@ import {
   Loader2,
   Zap,
   RefreshCw,
-  Info
+  Info,
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
@@ -137,7 +138,6 @@ const BackgroundRemover = () => {
 
   const processImage = useCallback(async (imageSource: File | Blob | string) => {
     setIsProcessing(true);
-    // Start animation BEFORE the heavy processing starts
     startFakeProgress();
     
     try {
@@ -152,7 +152,6 @@ const BackgroundRemover = () => {
       const blob = await removeBackground(imageSource, config);
       const resultUrl = URL.createObjectURL(blob);
       
-      // Stop animation and jump to 100%
       stopProgress(true);
       
       setTimeout(() => {
@@ -268,7 +267,6 @@ const BackgroundRemover = () => {
                 transition={isProcessing ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
                 className="relative aspect-[4/3] rounded-[40px] overflow-hidden shadow-2xl bg-slate-100 dark:bg-slate-900 group"
               >
-                {/* Photoshop-style Transparency Grid */}
                 <div 
                   className="absolute inset-0" 
                   style={{ 
@@ -311,6 +309,19 @@ const BackgroundRemover = () => {
                             </div>
                             <Progress value={visualProgress} className="h-2" />
                           </div>
+
+                          {visualProgress >= 89 && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="mt-6 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-2xl flex items-start gap-3"
+                            >
+                              <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                              <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400 leading-tight">
+                                it will compelete in 5 second until that wait
+                              </p>
+                            </motion.div>
+                          )}
                           
                           <p className="text-xs text-slate-400 text-center mt-6 flex items-center gap-1.5">
                             <Info className="w-3 h-3" />
