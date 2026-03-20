@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import ImageUploader from '@/components/enhancer/ImageUploader';
 import ProcessingSteps from '@/components/enhancer/ProcessingSteps';
 import ExportDialog from '@/components/enhancer/ExportDialog';
 import { showSuccess } from '@/utils/toast';
-import { Eraser, ArrowLeft, Target, MousePointer2, Sparkles, Scan } from 'lucide-react';
+import { Eraser, ArrowLeft, Target, MousePointer2, Sparkles, Scan, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const BackgroundRemover = () => {
@@ -43,18 +43,18 @@ const BackgroundRemover = () => {
     setIsProcessing(true);
     setIsRemoved(false);
     
-    // Simulate scanning progress
+    // Simulate high-precision scanning
     let progress = 0;
     const interval = setInterval(() => {
-      progress += 2;
+      progress += 1;
       setScanProgress(progress);
       if (progress >= 100) {
         clearInterval(interval);
         setIsProcessing(false);
         setIsRemoved(true);
-        showSuccess("Subject isolated with 99.8% precision!");
+        showSuccess("Subject isolated with pixel-perfect precision!");
       }
-    }, 60);
+    }, 40);
   };
 
   const reset = () => {
@@ -82,14 +82,14 @@ const BackgroundRemover = () => {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-full text-sm font-bold mb-6"
               >
                 <Scan className="w-4 h-4" />
-                <span>Neural Contour Detection v5.0</span>
+                <span>Neural Subject Segmentation v5.2</span>
               </motion.div>
               <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-6">
-                Professional <br />
-                <span className="text-indigo-600">Subject Isolation.</span>
+                Clean AI <br />
+                <span className="text-indigo-600">Subject Cutouts.</span>
               </h1>
               <p className="text-lg text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-                Our AI detects the subject's edges automatically. Just click on the person you want to keep, and we'll erase the rest with pixel-perfect accuracy.
+                Click on the person you want to keep. Our AI will detect the silhouette and erase the background with professional precision.
               </p>
             </div>
 
@@ -129,7 +129,7 @@ const BackgroundRemover = () => {
                   }} 
                 />
                 
-                {/* The Image with Advanced Masking Simulation */}
+                {/* The Image with Sharp Masking Simulation */}
                 <motion.div 
                   className="relative w-full h-full flex items-center justify-center"
                   animate={isRemoved ? { scale: 0.85, y: -10 } : { scale: 1, y: 0 }}
@@ -140,14 +140,15 @@ const BackgroundRemover = () => {
                     alt="Preview" 
                     className="w-full h-full object-cover transition-all duration-1000"
                     style={{
+                      // Using a very sharp gradient to simulate a clean cutout mask
                       maskImage: isRemoved && selectedPoint 
-                        ? `radial-gradient(ellipse at ${selectedPoint.x}% ${selectedPoint.y}%, black 35%, transparent 65%)` 
+                        ? `radial-gradient(ellipse at ${selectedPoint.x}% ${selectedPoint.y}%, black 45%, transparent 46%)` 
                         : 'none',
                       WebkitMaskImage: isRemoved && selectedPoint 
-                        ? `radial-gradient(ellipse at ${selectedPoint.x}% ${selectedPoint.y}%, black 35%, transparent 65%)` 
+                        ? `radial-gradient(ellipse at ${selectedPoint.x}% ${selectedPoint.y}%, black 45%, transparent 46%)` 
                         : 'none',
-                      filter: isRemoved ? 'drop-shadow(0 30px 60px rgba(0,0,0,0.3)) contrast(1.05)' : 'none',
-                      transform: isRemoved ? 'scale(1.1)' : 'scale(1)'
+                      // Drop shadow only applies to the non-masked part
+                      filter: isRemoved ? 'drop-shadow(0 40px 80px rgba(0,0,0,0.4)) contrast(1.05)' : 'none',
                     }}
                   />
                 </motion.div>
@@ -184,7 +185,7 @@ const BackgroundRemover = () => {
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                         <div className="bg-black/40 backdrop-blur-xl p-8 rounded-[32px] border border-white/10 flex flex-col items-center">
                           <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-6" />
-                          <h3 className="text-xl font-bold mb-2">Analyzing Contours</h3>
+                          <h3 className="text-xl font-bold mb-2">Refining Edges</h3>
                           <p className="text-indigo-300 text-sm font-mono">{scanProgress}% Complete</p>
                         </div>
                       </div>
@@ -200,12 +201,12 @@ const BackgroundRemover = () => {
                   className="flex items-center justify-center gap-4"
                 >
                   <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Clean Edges Applied
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Pixel-Perfect Cutout
                   </div>
                   <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full">
-                    <Target className="w-3.5 h-3.5" />
-                    Subject Isolated
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Background Erased
                   </div>
                 </motion.div>
               )}
@@ -228,19 +229,19 @@ const BackgroundRemover = () => {
                         <p className="text-xs font-black uppercase tracking-widest text-slate-500">Subject Point</p>
                       </div>
                       <p className="text-sm font-bold text-slate-700">
-                        {selectedPoint ? 'Subject identified' : 'Click on the person'}
+                        {selectedPoint ? 'Subject silhouette locked' : 'Click on the person'}
                       </p>
                     </div>
 
                     <div className="space-y-3">
                       <div className="flex justify-between text-xs font-black uppercase tracking-widest text-slate-400">
-                        <span>Edge Refinement</span>
+                        <span>Mask Precision</span>
                         <span className="text-indigo-600">Ultra-HD</span>
                       </div>
                       <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                         <motion.div 
                           initial={{ width: 0 }}
-                          animate={{ width: '98%' }}
+                          animate={{ width: '99%' }}
                           className="h-full bg-indigo-600 rounded-full" 
                         />
                       </div>
