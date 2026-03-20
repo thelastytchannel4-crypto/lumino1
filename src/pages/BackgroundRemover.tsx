@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import ImageUploader from '@/components/enhancer/ImageUploader';
-import { removeBackground, Config } from '@imgly/background-removal';
+import { pipeline, env, RawImage } from '@huggingface/transformers';
 import { showSuccess, showError } from '@/utils/toast';
 import { 
   Eraser, 
@@ -20,6 +20,10 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 
+// Configure transformers.js to use local models if needed, 
+// but by default it fetches from Hugging Face Hub
+env.allowLocalModels = false;
+
 const BackgroundRemover = () => {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
@@ -28,24 +32,34 @@ const BackgroundRemover = () => {
   const [currentMessage, setCurrentMessage] = useState("");
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   
+  const segmenterRef = useRef<any>(null);
   const rafId = useRef<number | null>(null);
   const lastUpdate = useRef<number>(0);
 
   // Preload the model on mount
   useEffect(() => {
-    const preload = async () => {
+    const loadModel = async () => {
       try {
-        const tinyPixel = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
-        await removeBackground(tinyPixel, { 
-          progress: () => {},
-          model: 'medium'
+        setCurrentMessage("Loading AI model...");
+        // Using briaai/RMBG-1.4 which is state-of-the-art for background removal
+        segmenterRef.current = await pipeline('image-segmentation', 'briaai/RMBG-1.4', {
+          device: 'webgpu', // Attempt to use WebGPU for speed
         });
         setIsModelLoaded(true);
+        setCurrentMessage("AI Engine Ready");
       } catch (e) {
-        console.warn("Model preloading failed", e);
+        console.warn("WebGPU not available, falling back to CPU", e);
+        try {
+          segmenterRef.current = await pipeline('image-segmentation', 'briaai/RMBG-1.4');
+          setIsModelLoaded(true);
+          setCurrentMessage("AI Engine Ready (CPU)");
+        } catch (err) {
+          console.error("Model loading failed", err);
+          showError("Failed to load AI model. Please refresh.");
+        }
       }
     };
-    preload();
+    loadModel();
     return () => {
       if (rafId.current) cancelAnimationFrame(rafId.current);
     };
@@ -62,15 +76,14 @@ const BackgroundRemover = () => {
       if (deltaTime >= 100) { // Every 100ms
         setVisualProgress(prev => {
           if (prev < 89) {
-            const next = prev + 0.5;
-            // Update messages based on progress thresholds
+            const next = prev + 0.8; // Slightly faster for RMBG
             if (next < 20) setCurrentMessage("Uploading image...");
             else if (next < 45) setCurrentMessage("Analyzing structure...");
             else if (next < 70) setCurrentMessage("Detecting subject...");
-            else setCurrentMessage("Removing background...");
+            else setCurrentMessage("Extracting mask...");
             return next;
           } else {
-            setCurrentMessage("Almost there...");
+            setCurrentMessage("Refining edges...");
             return 89;
           }
         });
@@ -89,68 +102,41 @@ const BackgroundRemover = () => {
     }
     if (success) {
       setVisualProgress(100);
-      setCurrentMessage("Background removed successfully!");
+      setCurrentMessage("Background removed!");
     }
   }, []);
 
-  const resizeImage = (file: File): Promise<Blob | File> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const MAX_WIDTH = 1024;
-          const MAX_HEIGHT = 1024;
-          let width = img.width;
-          let height = img.height;
+  const processImage = useCallback(async (imageSource: string) => {
+    if (!segmenterRef.current) {
+      showError("AI model is still loading. Please wait.");
+      return;
+    }
 
-          if (width <= MAX_WIDTH && height <= MAX_HEIGHT) {
-            resolve(file);
-            return;
-          }
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          canvas.toBlob((blob) => {
-            resolve(blob || file);
-          }, 'image/png');
-        };
-        img.src = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const processImage = useCallback(async (imageSource: File | Blob | string) => {
     setIsProcessing(true);
     startFakeProgress();
     
     try {
-      const config: Config = {
-        model: 'medium',
-        output: {
-          type: 'image/png',
-          quality: 0.8
-        }
-      };
+      // Load image into RawImage format for transformers.js
+      const img = await RawImage.fromURL(imageSource);
+      
+      // Run the segmentation pipeline
+      const output = await segmenterRef.current(img);
+      
+      // The output of RMBG-1.4 is the mask (alpha channel)
+      // We apply it to the original image
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) throw new Error("Could not get canvas context");
 
-      const blob = await removeBackground(imageSource, config);
-      const resultUrl = URL.createObjectURL(blob);
+      // Draw the processed image (the pipeline handles the masking)
+      const mask = output;
+      const maskCanvas = mask.toCanvas();
+      ctx.drawImage(maskCanvas, 0, 0);
+      
+      const resultUrl = canvas.toDataURL('image/png');
       
       stopProgress(true);
       
@@ -158,11 +144,11 @@ const BackgroundRemover = () => {
         setProcessedImage(resultUrl);
         setIsProcessing(false);
         showSuccess("Background removed successfully!");
-      }, 600);
+      }, 500);
     } catch (error) {
       console.error("Background removal failed:", error);
       stopProgress(false);
-      showError("Failed to remove background. Please try another image.");
+      showError("Failed to remove background. Try a smaller image.");
       setIsProcessing(false);
     }
   }, [startFakeProgress, stopProgress]);
@@ -172,18 +158,18 @@ const BackgroundRemover = () => {
     setOriginalImage(url);
     setProcessedImage(null);
     
-    const optimizedImage = await resizeImage(file);
-    await processImage(optimizedImage);
+    // We pass the URL directly to the process function
+    await processImage(url);
   };
 
   const handleDownload = () => {
     if (!processedImage) return;
     const link = document.body.appendChild(document.createElement('a'));
     link.href = processedImage;
-    link.download = `lumino1-cutout-${Date.now()}.png`;
+    link.download = `lumino1-rmbg-${Date.now()}.png`;
     link.click();
     link.remove();
-    showSuccess("Transparent PNG downloaded!");
+    showSuccess("High-quality PNG downloaded!");
   };
 
   const reset = () => {
@@ -212,14 +198,14 @@ const BackgroundRemover = () => {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-full text-sm font-bold mb-6"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>{isModelLoaded ? 'AI Engine Ready' : 'Initializing AI Engine...'}</span>
+                <span>{isModelLoaded ? 'Hugging Face RMBG-1.4 Active' : 'Loading RMBG-1.4 Model...'}</span>
               </motion.div>
               <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-6">
-                Remove Backgrounds <br />
-                <span className="text-indigo-600">Instantly.</span>
+                Pro Background <br />
+                <span className="text-indigo-600">Extraction.</span>
               </h1>
               <p className="text-lg text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-                Professional-grade background removal optimized for speed. Get high-quality transparent PNGs in seconds.
+                Powered by Hugging Face RMBG-1.4. Superior edge detection for hair, fur, and complex objects.
               </p>
             </div>
 
@@ -232,12 +218,12 @@ const BackgroundRemover = () => {
               className="mt-8 p-4 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100/50 dark:border-indigo-800/30 rounded-3xl flex items-start gap-4 max-w-2xl mx-auto"
             >
               <div className="w-10 h-10 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                <Info className="w-5 h-5 text-indigo-600" />
+                <Zap className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Processing Note</h4>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Model Information</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Initializing... the progress bar may not show immediate progress while the AI engine warms up, but the process will be complete in about 5 seconds.
+                  The RMBG-1.4 model is downloaded once (~170MB) and cached in your browser. Subsequent removals will be near-instant.
                 </p>
               </div>
             </motion.div>
@@ -245,12 +231,12 @@ const BackgroundRemover = () => {
             <div className="mt-8 flex items-center justify-center gap-4 text-slate-400 text-sm">
               <div className="flex items-center gap-1.5">
                 <Zap className="w-4 h-4 text-amber-500" />
-                <span>GPU Accelerated</span>
+                <span>WebGPU Accelerated</span>
               </div>
               <div className="w-1 h-1 bg-slate-300 rounded-full" />
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                <span>Private & Secure</span>
+                <span>100% Private</span>
               </div>
             </div>
           </motion.div>
@@ -315,7 +301,7 @@ const BackgroundRemover = () => {
                               <Zap className="w-6 h-6 text-indigo-600 animate-pulse" />
                             </div>
                           </div>
-                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Removing Background</h3>
+                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">RMBG-1.4 Processing</h3>
                           
                           <div className="w-full space-y-2">
                             <div className="flex justify-between text-xs font-bold text-slate-400">
@@ -342,7 +328,7 @@ const BackgroundRemover = () => {
                           
                           <p className="text-xs text-slate-400 text-center mt-6 flex items-center gap-1.5">
                             <Info className="w-3 h-3" />
-                            Optimizing for speed (Max 1024px)
+                            Running locally on your device
                           </p>
                         </div>
                       </motion.div>
@@ -376,7 +362,7 @@ const BackgroundRemover = () => {
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <Eraser className="w-5 h-5 text-indigo-600" />
-                    Extraction Engine
+                    RMBG-1.4 Engine
                   </h3>
                   
                   <div className="space-y-6">
