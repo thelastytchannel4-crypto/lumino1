@@ -19,14 +19,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 
-const STAGES = [
-  { threshold: 20, message: "Uploading image..." },
-  { threshold: 40, message: "Analyzing image structure..." },
-  { threshold: 65, message: "Detecting subject edges..." },
-  { threshold: 85, message: "Removing background..." },
-  { threshold: 99, message: "Finalizing cutout..." },
-];
-
 const BackgroundRemover = () => {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
@@ -54,20 +46,32 @@ const BackgroundRemover = () => {
     preload();
   }, []);
 
-  // Handle smooth progress simulation
+  // Handle smooth, non-freezing progress simulation
   useEffect(() => {
     if (isProcessing) {
       setVisualProgress(0);
+      setCurrentMessage("Uploading image...");
+      
       progressInterval.current = setInterval(() => {
         setVisualProgress(prev => {
-          if (prev < 99) {
-            // Slow down as it gets closer to 99
-            const increment = prev < 80 ? Math.random() * 5 : Math.random() * 0.5;
-            return Math.min(99, prev + increment);
+          if (prev < 30) {
+            // Phase 1: Quick move to 30% (approx 2 seconds at 100ms intervals)
+            const next = prev + 1.5;
+            setCurrentMessage("Analyzing image structure...");
+            return next;
+          } else if (prev < 90) {
+            // Phase 2: Slow crawl from 30% to 90%
+            const next = prev + (Math.random() * 0.4);
+            if (prev < 60) setCurrentMessage("Detecting subject edges...");
+            else setCurrentMessage("Removing background...");
+            return Math.min(90, next);
+          } else {
+            // Phase 3: Stay at 90% with "Almost done" message
+            setCurrentMessage("Almost done...");
+            return 90;
           }
-          return prev;
         });
-      }, 150);
+      }, 100);
     } else {
       if (progressInterval.current) clearInterval(progressInterval.current);
     }
@@ -75,12 +79,6 @@ const BackgroundRemover = () => {
       if (progressInterval.current) clearInterval(progressInterval.current);
     };
   }, [isProcessing]);
-
-  // Update message based on progress
-  useEffect(() => {
-    const stage = STAGES.find(s => visualProgress <= s.threshold) || STAGES[STAGES.length - 1];
-    setCurrentMessage(stage.message);
-  }, [visualProgress]);
 
   const resizeImage = (file: File): Promise<Blob | File> => {
     return new Promise((resolve) => {
@@ -140,15 +138,15 @@ const BackgroundRemover = () => {
       const blob = await removeBackground(imageSource, config);
       const resultUrl = URL.createObjectURL(blob);
       
-      // Jump to 100% when actually done
+      // Finalize: Jump to 100% and show success
       setVisualProgress(100);
-      setCurrentMessage("Complete!");
+      setCurrentMessage("Background removed successfully!");
       
       setTimeout(() => {
         setProcessedImage(resultUrl);
         setIsProcessing(false);
         showSuccess("Background removed successfully!");
-      }, 500);
+      }, 600);
     } catch (error) {
       console.error("Background removal failed:", error);
       showError("Failed to remove background. Please try another image.");
@@ -247,7 +245,11 @@ const BackgroundRemover = () => {
               </div>
               
               <motion.div 
-                animate={isProcessing ? { scale: [1, 1.01, 1], opacity: [1, 0.8, 1] } : {}}
+                animate={isProcessing ? { 
+                  scale: [1, 1.005, 1], 
+                  opacity: [1, 0.9, 1],
+                  boxShadow: ["0 20px 50px rgba(0,0,0,0.1)", "0 20px 50px rgba(79,70,229,0.2)", "0 20px 50px rgba(0,0,0,0.1)"]
+                } : {}}
                 transition={isProcessing ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
                 className="relative aspect-[4/3] rounded-[40px] overflow-hidden shadow-2xl bg-slate-100 dark:bg-slate-900 group"
               >
@@ -287,7 +289,9 @@ const BackgroundRemover = () => {
                           
                           <div className="w-full space-y-2">
                             <div className="flex justify-between text-xs font-bold text-slate-400">
-                              <span className="animate-pulse">{currentMessage}</span>
+                              <span className={visualProgress >= 90 ? "animate-bounce" : "animate-pulse"}>
+                                {currentMessage}
+                              </span>
                               <span>{Math.round(visualProgress)}%</span>
                             </div>
                             <Progress value={visualProgress} className="h-2" />
