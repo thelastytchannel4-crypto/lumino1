@@ -20,8 +20,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 
-// Configure transformers.js to use local models if needed, 
-// but by default it fetches from Hugging Face Hub
+// Configure transformers.js to use local models if needed
 env.allowLocalModels = false;
 
 const BackgroundRemover = () => {
@@ -76,7 +75,7 @@ const BackgroundRemover = () => {
       if (deltaTime >= 100) { // Every 100ms
         setVisualProgress(prev => {
           if (prev < 89) {
-            const next = prev + 0.8; // Slightly faster for RMBG
+            const next = prev + 0.8;
             if (next < 20) setCurrentMessage("Uploading image...");
             else if (next < 45) setCurrentMessage("Analyzing structure...");
             else if (next < 70) setCurrentMessage("Detecting subject...");
@@ -116,25 +115,42 @@ const BackgroundRemover = () => {
     startFakeProgress();
     
     try {
-      // Load image into RawImage format for transformers.js
+      // 1. Load original image into RawImage format
       const img = await RawImage.fromURL(imageSource);
       
-      // Run the segmentation pipeline
+      // 2. Run the segmentation pipeline to get the mask
       const output = await segmenterRef.current(img);
+      const mask = output; // RMBG-1.4 returns the mask as a RawImage
       
-      // The output of RMBG-1.4 is the mask (alpha channel)
-      // We apply it to the original image
+      // 3. Create a canvas to combine original image and mask
       const canvas = document.createElement('canvas');
       canvas.width = img.width;
       canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
       
       if (!ctx) throw new Error("Could not get canvas context");
 
-      // Draw the processed image (the pipeline handles the masking)
-      const mask = output;
+      // 4. Draw the original image onto the canvas
+      const originalCanvas = img.toCanvas();
+      ctx.drawImage(originalCanvas, 0, 0);
+      
+      // 5. Get the image data from the original image
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      
+      // 6. Get the mask data
       const maskCanvas = mask.toCanvas();
-      ctx.drawImage(maskCanvas, 0, 0);
+      const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
+      if (!maskCtx) throw new Error("Could not get mask canvas context");
+      const maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height);
+      
+      // 7. Apply the mask to the alpha channel of the original image
+      // The mask is grayscale (R=G=B), so we use the Red channel as the Alpha value
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        imageData.data[i + 3] = maskData.data[i];
+      }
+      
+      // 8. Put the modified image data back onto the canvas
+      ctx.putImageData(imageData, 0, 0);
       
       const resultUrl = canvas.toDataURL('image/png');
       
@@ -157,8 +173,6 @@ const BackgroundRemover = () => {
     const url = URL.createObjectURL(file);
     setOriginalImage(url);
     setProcessedImage(null);
-    
-    // We pass the URL directly to the process function
     await processImage(url);
   };
 
@@ -321,7 +335,7 @@ const BackgroundRemover = () => {
                             >
                               <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                               <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400 leading-tight">
-                                it will compelete in 5 second until that wait
+                                It will complete in a few seconds, please wait...
                               </p>
                             </motion.div>
                           )}
