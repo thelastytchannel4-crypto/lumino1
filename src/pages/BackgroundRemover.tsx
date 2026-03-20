@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import ImageUploader from '@/components/enhancer/ImageUploader';
 import { showSuccess, showError } from '@/utils/toast';
@@ -14,10 +14,11 @@ import {
   Zap,
   RefreshCw,
   Info,
-  Cloud
+  Cpu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
+import removeBackground from '@imgly/background-removal';
 
 const BackgroundRemover = () => {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -25,102 +26,41 @@ const BackgroundRemover = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [visualProgress, setVisualProgress] = useState(0);
   const [currentMessage, setCurrentMessage] = useState("");
-  
-  const rafId = useRef<number | null>(null);
-  const lastUpdate = useRef<number>(0);
-
-  const startFakeProgress = useCallback(() => {
-    setVisualProgress(0);
-    setCurrentMessage("Connecting to AI Cloud...");
-    lastUpdate.current = performance.now();
-
-    const animate = (time: number) => {
-      const deltaTime = time - lastUpdate.current;
-
-      if (deltaTime >= 100) {
-        setVisualProgress(prev => {
-          if (prev < 95) {
-            const next = prev + (95 - prev) * 0.1;
-            if (next < 30) setCurrentMessage("Uploading image...");
-            else if (next < 60) setCurrentMessage("AI Analysis...");
-            else if (next < 85) setCurrentMessage("Extracting subject...");
-            else setCurrentMessage("Finalizing transparency...");
-            return next;
-          }
-          return 95;
-        });
-        lastUpdate.current = time;
-      }
-      rafId.current = requestAnimationFrame(animate);
-    };
-
-    rafId.current = requestAnimationFrame(animate);
-  }, []);
-
-  const stopProgress = useCallback((success: boolean) => {
-    if (rafId.current) {
-      cancelAnimationFrame(rafId.current);
-      rafId.current = null;
-    }
-    if (success) {
-      setVisualProgress(100);
-      setCurrentMessage("Background removed!");
-    }
-  }, []);
-
-  const toBase64 = (url: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.onload = function() {
-        const reader = new FileReader();
-        reader.onloadend = function() {
-          resolve(reader.result as string);
-        };
-        reader.readAsDataURL(xhr.response);
-      };
-      xhr.onerror = reject;
-      xhr.open('GET', url);
-      xhr.responseType = 'blob';
-      xhr.send();
-    });
-  };
 
   const processImage = useCallback(async (imageSource: string) => {
     setIsProcessing(true);
-    startFakeProgress();
+    setVisualProgress(0);
+    setCurrentMessage("Initializing AI Engine...");
     
     try {
-      const base64 = await toBase64(imageSource);
-      
-      const response = await fetch('https://bg.adityachoudhary.xyz/remove', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // On-device processing using WASM
+      const blob = await removeBackground(imageSource, {
+        progress: (step, progress) => {
+          const percentage = Math.round(progress * 100);
+          setVisualProgress(percentage);
+          if (step.includes('load')) {
+            setCurrentMessage(`Downloading AI Model (${percentage}%)`);
+          } else {
+            setCurrentMessage(`Analyzing Image (${percentage}%)`);
+          }
         },
-        body: JSON.stringify({
-          image_base64: base64
-        })
+        model: 'medium', // Balanced for speed and quality
+        output: {
+          format: 'image/png',
+          quality: 0.8
+        }
       });
 
-      if (!response.ok) throw new Error("API request failed");
-
-      const blob = await response.blob();
       const resultUrl = URL.createObjectURL(blob);
-      
-      stopProgress(true);
-      
-      setTimeout(() => {
-        setProcessedImage(resultUrl);
-        setIsProcessing(false);
-        showSuccess("Background removed successfully!");
-      }, 500);
+      setProcessedImage(resultUrl);
+      setIsProcessing(false);
+      showSuccess("Background removed locally!");
     } catch (error) {
-      console.error("Background removal failed:", error);
-      stopProgress(false);
-      showError("Cloud processing failed. Please try again.");
+      console.error("On-device background removal failed:", error);
+      showError("AI processing failed. Your browser might not support WebAssembly.");
       setIsProcessing(false);
     }
-  }, [startFakeProgress, stopProgress]);
+  }, []);
 
   const handleUpload = async (file: File) => {
     const url = URL.createObjectURL(file);
@@ -133,14 +73,13 @@ const BackgroundRemover = () => {
     if (!processedImage) return;
     const link = document.body.appendChild(document.createElement('a'));
     link.href = processedImage;
-    link.download = `lumino1-transparent-${Date.now()}.png`;
+    link.download = `lumino1-on-device-${Date.now()}.png`;
     link.click();
     link.remove();
-    showSuccess("Transparent PNG downloaded!");
+    showSuccess("Transparent PNG saved!");
   };
 
   const reset = () => {
-    if (rafId.current) cancelAnimationFrame(rafId.current);
     setOriginalImage(null);
     setProcessedImage(null);
     setIsProcessing(false);
@@ -162,17 +101,17 @@ const BackgroundRemover = () => {
               <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-full text-sm font-bold mb-6"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-full text-sm font-bold mb-6"
               >
-                <Cloud className="w-4 h-4" />
-                <span>Unlimited Cloud AI Engine</span>
+                <Cpu className="w-4 h-4" />
+                <span>100% On-Device AI (Private & Unlimited)</span>
               </motion.div>
               <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-6">
-                Instant Background <br />
+                Private Background <br />
                 <span className="text-indigo-600">Removal.</span>
               </h1>
               <p className="text-lg text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-                Remove backgrounds from any image in seconds with professional-grade precision.
+                Your photos never leave your computer. Processed locally using advanced browser-based neural networks.
               </p>
             </div>
 
@@ -180,9 +119,9 @@ const BackgroundRemover = () => {
 
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { icon: Zap, title: "Fast", desc: "Processed in seconds" },
-                { icon: ShieldCheck, title: "Secure", desc: "Encrypted transfers" },
-                { icon: Sparkles, title: "HD", desc: "Full resolution output" }
+                { icon: ShieldCheck, title: "Private", desc: "No server uploads" },
+                { icon: Zap, title: "Unlimited", desc: "No API limits or costs" },
+                { icon: Sparkles, title: "Pro Quality", desc: "Clean edges & HD output" }
               ].map((item, i) => (
                 <div key={i} className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 text-center">
                   <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
@@ -247,15 +186,16 @@ const BackgroundRemover = () => {
                               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                             />
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <Cloud className="w-6 h-6 text-indigo-600 animate-pulse" />
+                              <Cpu className="w-6 h-6 text-indigo-600 animate-pulse" />
                             </div>
                           </div>
-                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Cloud Processing</h3>
+                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">On-Device AI</h3>
+                          <p className="text-xs text-slate-400 mb-6 text-center">First run may take a moment to download the AI model (~20MB)</p>
                           
                           <div className="w-full space-y-2">
                             <div className="flex justify-between text-xs font-bold text-slate-400">
                               <span>{currentMessage}</span>
-                              <span>{Math.round(visualProgress)}%</span>
+                              <span>{visualProgress}%</span>
                             </div>
                             <Progress value={visualProgress} className="h-2" />
                           </div>
@@ -291,7 +231,7 @@ const BackgroundRemover = () => {
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <Eraser className="w-5 h-5 text-indigo-600" />
-                    Extraction Engine
+                    Local AI Engine
                   </h3>
                   
                   <div className="space-y-6">
@@ -302,10 +242,10 @@ const BackgroundRemover = () => {
                       </p>
                     </div>
 
-                    <div className="p-4 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl flex items-start gap-3">
-                      <Info className="w-4 h-4 text-indigo-600 mt-0.5" />
+                    <div className="p-4 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl flex items-start gap-3">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5" />
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Your image is processed securely in the cloud and deleted immediately after extraction.
+                        Privacy First: Your image is processed entirely on your device. No data is sent to any server.
                       </p>
                     </div>
                   </div>
@@ -332,7 +272,7 @@ const BackgroundRemover = () => {
                     </>
                   ) : (
                     <div className="p-6 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
-                      <p className="text-sm text-slate-400 font-medium">Upload an image to start the AI extraction</p>
+                      <p className="text-sm text-slate-400 font-medium">Upload an image to start the local AI extraction</p>
                     </div>
                   )}
                 </div>
