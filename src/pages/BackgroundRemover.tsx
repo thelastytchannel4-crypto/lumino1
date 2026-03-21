@@ -192,12 +192,15 @@ const BackgroundRemover = () => {
                           <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">On-Device AI</h3>
                           <p className="text-xs text-slate-400 mb-6 text-center">First run may take a moment to download the AI model (~20MB)</p>
                           
-                          <div className="w-full space-y-2">
+                          <div className="w-full space-y-3">
                             <div className="flex justify-between text-xs font-bold text-slate-400">
                               <span>{currentMessage}</span>
                               <span>{visualProgress}%</span>
                             </div>
                             <Progress value={visualProgress} className="h-2" />
+                            <p className="text-[10px] text-center text-slate-400 font-medium animate-pulse">
+                              Processing the image, please wait...
+                            </p>
                           </div>
                         </div>
                       </motion.div>
